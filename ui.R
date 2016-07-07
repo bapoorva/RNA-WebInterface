@@ -80,21 +80,22 @@ dashboardPage(
                      column(6,downloadButton('downloadcam', 'Download Camera Data'))
                    ),
                    
+#                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#                    br(),
+#                    actionButton(inputId = 'runspia', label = 'Click to run SPIA'),
+                   hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                   br(),
+                   h4('Pathway Analysis using SPIA'),
                    actionButton(inputId = 'runspia', label = 'Click to run SPIA'),
+#                    fluidRow(
+#                      column(6, radioButtons(inputId = 'path', label = h5("KEGG Pathway"), choices = c("Upregulated" = 'up', "Downregulated" = 'down'),selected = 1)),
+#                      br(),
+#                      column(6, textInput(inputId = 'num', label = "Top num of pathways", value = '10')),
+#                      column(6,actionButton(inputId = 'makeplot', label = 'View KEGG Results')),
+#                      width=4
+#                    ),
                    hr(),
-                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                   h4('Gene Ontology Analysis'),
-                   fluidRow(
-                     column(6, radioButtons(inputId = 'path', label = h5("KEGG Pathway"), choices = c("Upregulated" = 'up', "Downregulated" = 'down'),selected = 1)),
-                     br(),
-                     column(6, textInput(inputId = 'num', label = "Top num of pathways", value = '10')),
-                     column(6,actionButton(inputId = 'makeplot', label = 'View KEGG Results')),
-                     width=4
-                   ),
-                   hr(),
-                   h5('GO Analysis using GAGE'),
+                   h4('GO Analysis using GAGE'),
                    fluidRow(
                      column(6,radioButtons(inputId='gage', label = h5("Select ontology"),
                                            choices = c("Biological Process" = 'BP', "Cellular Component" = 'cc', "Molecular Function" = 'MF'),
@@ -137,7 +138,7 @@ dashboardPage(
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip"),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
                 tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
-                tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
+                #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),
                 tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
