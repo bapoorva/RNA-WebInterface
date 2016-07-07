@@ -79,11 +79,11 @@ dashboardPage(
                      column(6,uiOutput("cameradd")),
                      column(6,downloadButton('downloadcam', 'Download Camera Data'))
                    ),
-                   
-#                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                   hr(),
+                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #                    br(),
 #                    actionButton(inputId = 'runspia', label = 'Click to run SPIA'),
-                   hr(),
+#                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    h4('Pathway Analysis using SPIA'),
                    actionButton(inputId = 'runspia', label = 'Click to run SPIA'),

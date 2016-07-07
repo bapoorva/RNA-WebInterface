@@ -763,108 +763,108 @@ shinyServer(function(input, output,session) {
   ###################################################
   ###################################################
 
-  datasetInput6 = reactive({
-    validate(
-      need(input$path, "Please choose either upregulated or downregulated")
-    )
-    final_res=datasetInput()
-     #extract logfc values from limma output and the corresponsing entrez names after annotation
-     logfc=final_res$logFC
-     names(logfc)=final_res$ENTREZID
-      myurl=character()
-     #gives list of pathways thats upregulated and downregulated
-     kegg_results = gage(logfc, gsets=kegg.sets.mm, same.dir=TRUE)
-     l=input$num
-     #user-input -upregulated/downregulated kegg pathway
-    if(input$path=='up')
-     {
-       #pull the top n upregulated pathways  their id's
-       kegg_path=data.frame(id=rownames(kegg_results$greater), kegg_results$greater)
-       #kegg_path_fill=kegg_path[is.na(kegg_path$p.val)==FALSE,]
-       kegg_path_top=data.frame(kegg_path[1:l,])
-       keggresids = substr(kegg_path_top$id, start=1, stop=8)
-       withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
-       for (i in 1:length(keggresids)){
-         pId=keggresids[i] #get KEGG id one by one in a  loop
-         allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
-         p=strsplit(allgenelist,":")
-         genes_entrez=sapply(p,"[",2)
-         genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
-         genelist=paste0("mmu:",genelist)
-         myurl[i]=mark.pathway.by.objects(pId,genelist)
-       }
-       })
-       
-       url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
-       kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
-       kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
-       kegg_path_top=as.data.frame(kegg_path_top)
-        return(kegg_path_top)
-     }
-     else if(input$path=='down')
-     {
-       #pull the top n downregulated pathways  their id's
-       kegg_path=data.frame(id=rownames(kegg_results$less), kegg_results$less)
-       kegg_path_top=data.frame(kegg_path[1:l,])
-       keggresids = substr(kegg_path_top$id, start=1, stop=8)
-       withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
-       for (i in 1:length(keggresids)){
-       pId=keggresids[i] #get KEGG id one by one in a  loop
-       allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
-       p=strsplit(allgenelist,":")
-       genes_entrez=sapply(p,"[",2)
-       genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
-       genelist=paste0("mmu:",genelist)
-       myurl[i]=mark.pathway.by.objects(pId,genelist)
-       }
-       })
-       url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
-       kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
-       kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
-       kegg_path_top=as.data.frame(kegg_path_top)
-       return(kegg_path_top)
-     }
-  })
-          
-          output$kegg = DT::renderDataTable({
-            input$num
-            DT::datatable(datasetInput6(),
-                           extensions = c('Buttons','Scroller'),
-                           options = list(dom = 'Bfrtip',
-                                          searchHighlight = TRUE,
-                                          pageLength = 10,
-                                          lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
-                                          scrollX = TRUE,
-                                          buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                           ),rownames=FALSE,escape=FALSE,caption="KEGG Pathways",selection = list(mode = 'single', selected =1))
-          })
-          
-         kegggenes = reactive({
-          keggpath=datasetInput6() 
-          final_res=datasetInput()
-           s=input$kegg_rows_selected 
-           row=keggpath[s, ,drop=FALSE]
-           keggid=row$id
-           keggid = substr(keggid, start=1, stop=8)
-          allgenelist=keggLink("mmu",keggid) #for each kegg id, get gene list
-          p=strsplit(allgenelist,":")
-          genes_entrez=sapply(p,"[",2)
-          genelist=final_res[final_res$ENTREZID %in% genes_entrez,]
-            return(genelist) #return the genelist
-          })
-          
-         output$kegggenes = DT::renderDataTable({
-           input$num
-           DT::datatable(kegggenes(),
-                         extensions = c('Buttons','Scroller'),
-                         options = list(dom = 'Bfrtip',
-                                        searchHighlight = TRUE,
-                                        pageLength = 10,
-                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
-                                        scrollX = TRUE,
-                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                         ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1,caption="Genelist"))
-         })
+#   datasetInput6 = reactive({
+#     validate(
+#       need(input$path, "Please choose either upregulated or downregulated")
+#     )
+#     final_res=datasetInput()
+#      #extract logfc values from limma output and the corresponsing entrez names after annotation
+#      logfc=final_res$logFC
+#      names(logfc)=final_res$ENTREZID
+#       myurl=character()
+#      #gives list of pathways thats upregulated and downregulated
+#      kegg_results = gage(logfc, gsets=kegg.sets.mm, same.dir=TRUE)
+#      l=input$num
+#      #user-input -upregulated/downregulated kegg pathway
+#     if(input$path=='up')
+#      {
+#        #pull the top n upregulated pathways  their id's
+#        kegg_path=data.frame(id=rownames(kegg_results$greater), kegg_results$greater)
+#        #kegg_path_fill=kegg_path[is.na(kegg_path$p.val)==FALSE,]
+#        kegg_path_top=data.frame(kegg_path[1:l,])
+#        keggresids = substr(kegg_path_top$id, start=1, stop=8)
+#        withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
+#        for (i in 1:length(keggresids)){
+#          pId=keggresids[i] #get KEGG id one by one in a  loop
+#          allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
+#          p=strsplit(allgenelist,":")
+#          genes_entrez=sapply(p,"[",2)
+#          genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
+#          genelist=paste0("mmu:",genelist)
+#          myurl[i]=mark.pathway.by.objects(pId,genelist)
+#        }
+#        })
+#        
+#        url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
+#        kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
+#        kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
+#        kegg_path_top=as.data.frame(kegg_path_top)
+#         return(kegg_path_top)
+#      }
+#      else if(input$path=='down')
+#      {
+#        #pull the top n downregulated pathways  their id's
+#        kegg_path=data.frame(id=rownames(kegg_results$less), kegg_results$less)
+#        kegg_path_top=data.frame(kegg_path[1:l,])
+#        keggresids = substr(kegg_path_top$id, start=1, stop=8)
+#        withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
+#        for (i in 1:length(keggresids)){
+#        pId=keggresids[i] #get KEGG id one by one in a  loop
+#        allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
+#        p=strsplit(allgenelist,":")
+#        genes_entrez=sapply(p,"[",2)
+#        genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
+#        genelist=paste0("mmu:",genelist)
+#        myurl[i]=mark.pathway.by.objects(pId,genelist)
+#        }
+#        })
+#        url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
+#        kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
+#        kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
+#        kegg_path_top=as.data.frame(kegg_path_top)
+#        return(kegg_path_top)
+#      }
+#   })
+#           
+#           output$kegg = DT::renderDataTable({
+#             input$num
+#             DT::datatable(datasetInput6(),
+#                            extensions = c('Buttons','Scroller'),
+#                            options = list(dom = 'Bfrtip',
+#                                           searchHighlight = TRUE,
+#                                           pageLength = 10,
+#                                           lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+#                                           scrollX = TRUE,
+#                                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+#                            ),rownames=FALSE,escape=FALSE,caption="KEGG Pathways",selection = list(mode = 'single', selected =1))
+#           })
+#           
+#          kegggenes = reactive({
+#           keggpath=datasetInput6() 
+#           final_res=datasetInput()
+#            s=input$kegg_rows_selected 
+#            row=keggpath[s, ,drop=FALSE]
+#            keggid=row$id
+#            keggid = substr(keggid, start=1, stop=8)
+#           allgenelist=keggLink("mmu",keggid) #for each kegg id, get gene list
+#           p=strsplit(allgenelist,":")
+#           genes_entrez=sapply(p,"[",2)
+#           genelist=final_res[final_res$ENTREZID %in% genes_entrez,]
+#             return(genelist) #return the genelist
+#           })
+#           
+#          output$kegggenes = DT::renderDataTable({
+#            input$num
+#            DT::datatable(kegggenes(),
+#                          extensions = c('Buttons','Scroller'),
+#                          options = list(dom = 'Bfrtip',
+#                                         searchHighlight = TRUE,
+#                                         pageLength = 10,
+#                                         lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+#                                         scrollX = TRUE,
+#                                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+#                          ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1,caption="Genelist"))
+#          })
           
   #create plots for KEGG pathways
 #   output$plots = renderUI({
@@ -912,12 +912,12 @@ shinyServer(function(input, output,session) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # display plots in Pathway PLot tab
-  observe({
-    if(input$makeplot > 0)
-    {
-      updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tab5')
-    }
-  })
+#   observe({
+#     if(input$makeplot > 0)
+#     {
+#       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tab5')
+#     }
+#   })
 
   ##################################################
   ##################################################
