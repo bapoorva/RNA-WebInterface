@@ -26,6 +26,7 @@ library(shinyRGL)
 library(rgl)
 library(rglwidget)
 library(SPIA)
+library(ReactomePA)
 #library(Factoshiny)
 
 #load entrez id's for kegg pathway
@@ -632,6 +633,55 @@ shinyServer(function(input, output,session) {
           text=paste('Gene list for Camera term :',camname,sep="")
           
           return(text)
+        })
+        
+
+###################################################
+###################################################
+############### ENRICHMENT PLOT ###################
+###################################################
+###################################################
+      
+        ep_out <- reactive({
+          results=fileload()
+          contrasts=input$contrast
+          res=paste("results$eplot$",contrasts,sep="")
+          tab=eval(parse(text =res))
+          return(tab)
+        })
+        
+        output$eplottab = DT::renderDataTable({
+          input$eplot
+          withProgress(session = session, message = 'Generating data...',detail = 'This will take a while. Please be patient and wait for it to load.',{
+            isolate({
+          DT::datatable(ep_out(),
+                        extensions = c('Buttons','Scroller'),
+                        options = list(dom = 'Bfrtip',
+                                       searchHighlight = TRUE,
+                                       pageLength = 10,
+                                       lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                        ),rownames=FALSE,escape=FALSE)
+        })
+      })
+    })
+       
+        output$en_plot <- renderPlot({
+          res=ep_out()
+          s=input$eplottab_rows_selected 
+          row=res[s, ,drop=FALSE]
+          id=row$ID
+          results=fileload()
+          contrasts=input$contrast
+          y=paste("results$gsea$",contrasts,sep="")
+          gseaplot(y, geneSetID = id)
+        })
+        
+         observe({
+          if(input$eplot>0){
+            updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'eplot')}
+          toggle(condition =input$eplot,selector = "#tabvalue li a[data-value=eplot]")
         })
 ###################################################
 ###################################################
