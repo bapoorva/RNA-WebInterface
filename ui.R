@@ -139,7 +139,7 @@ dashboardPage(
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip"),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
                 tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
-                tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),plotOutput('en_plot')),
+                tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),
                 #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),

@@ -647,13 +647,15 @@ shinyServer(function(input, output,session) {
           contrasts=input$contrast
           res=paste("results$eplot$",contrasts,sep="")
           tab=eval(parse(text =res))
+          validate(
+            need(nrow(tab) > 1, "No Enriched Pathways found")
+          )
           return(tab)
         })
         
         output$eplottab = DT::renderDataTable({
           input$eplot
-          withProgress(session = session, message = 'Generating data...',detail = 'This will take a while. Please be patient and wait for it to load.',{
-            isolate({
+          input$contrasts
           DT::datatable(ep_out(),
                         extensions = c('Buttons','Scroller'),
                         options = list(dom = 'Bfrtip',
@@ -662,11 +664,20 @@ shinyServer(function(input, output,session) {
                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                        ),rownames=FALSE,escape=FALSE)
-        })
-      })
-    })
+                        ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1))
+          })
        
+        output$eplotdesc <- renderText({
+          res=ep_out()
+          s=input$eplottab_rows_selected 
+          row=res[s, ,drop=FALSE]
+          id=row$Description
+          text=paste('Enrichment plot for :',id,sep="")
+          
+          return(text)
+        })
+        
+        
         output$en_plot <- renderPlot({
           res=ep_out()
           s=input$eplottab_rows_selected 
@@ -675,7 +686,8 @@ shinyServer(function(input, output,session) {
           results=fileload()
           contrasts=input$contrast
           y=paste("results$gsea$",contrasts,sep="")
-          gseaplot(y, geneSetID = id)
+          y2=eval(parse(text =y))
+          gseaplot(y2, geneSetID = id)
         })
         
          observe({
