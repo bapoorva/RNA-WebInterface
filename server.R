@@ -671,47 +671,7 @@ shinyServer(function(input, output,session) {
 ################ SPIA PATHWAY ANALYSIS#############
 ###################################################
 ###################################################
-#           spia_op <- reactive({
-#             limma_full <- datasetInput0.5()
-#             limma_sel <- datasetInput()
-#             all_genes = as.numeric(limma_full$ENTREZID)
-#             sig_genes = limma_sel$logFC
-#             names(sig_genes) = limma_sel$ENTREZID 
-#             sig_genes = sig_genes[complete.cases(names(sig_genes))]
-#             sig_genes = sig_genes[unique(names(sig_genes))] 
-#             spia_result <- spia(de=sig_genes, all=all_genes, organism="mmu")
-#             spia_result$KEGGLINK <- paste0("<a href='",spia_result$KEGGLINK,"' target='_blank'>","Link to KEGG","</a>")
-#             return(spia_result)
-#           })
-#           
-#           output$spiaop <- DT::renderDataTable({
-#             input$runspia
-#             withProgress(session = session, message = 'Calculating...',detail = 'This may take a while...',{
-#               isolate({
-#                 DT::datatable(spia_op(),escape = FALSE,selection = list(mode = 'single', selected ='none'),
-#                               extensions = c('Buttons','Scroller'),
-#                               options = list(
-#                                 dom = 'RMDCT<"clear">lfrtip',
-#                                 searchHighlight = TRUE,
-#                                 pageLength = 10,
-#                                 lengthMenu = list(c(5, 10, 15, 20, 25, -1), c('5', '10', '15', '20', '25', 'All')),
-#                                 scrollX = TRUE,
-#                                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-#                               ))
-#               })
-#             })
-#           })
-#           
-#           # update tab with spia results
-#           observe({
-#             if(input$runspia > 0)
-#             {
-#               updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'spia')
-#             }
-#           })
-          
-##################################################
-###################################################
+
           spia_op <- reactive({
             validate(
               need(input$runspia, "Please Click on the button to run SPIA ")
@@ -733,7 +693,7 @@ shinyServer(function(input, output,session) {
             input$projects
             withProgress(session = session, message = 'Calculating...',detail = 'This may take a while...',{
               isolate({
-                DT::datatable(spia_op(),escape = FALSE,selection = list(mode = 'single', selected ='none'),
+                DT::datatable(spia_op(),escape = FALSE,selection = list(mode = 'single', selected =1),
                               extensions = c('Buttons','Scroller'),
                               options = list(
                                 dom = 'RMDCT<"clear">lfrtip',
@@ -746,178 +706,51 @@ shinyServer(function(input, output,session) {
               })
             })
           })
-          
-          # update tab with spia results
-          observe({
-            if(input$runspia > 0)
-            {
-              updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'spia')
-            }
+         
+     spiagenes = reactive({
+          spiaid=spia_op() 
+          final_res=datasetInput()
+           s=input$spiaop_rows_selected 
+           row=spiaid[s, ,drop=FALSE]
+           id=paste("mmu",row$ID,sep="")
+           #keggid = substr(keggid, start=1, stop=8)
+          allgenelist=keggLink("mmu",id) #for each kegg id, get gene list
+          p=strsplit(allgenelist,":")
+          genes_entrez=sapply(p,"[",2)
+          genelist=final_res[final_res$ENTREZID %in% genes_entrez,]
+            return(genelist) #return the genelist
           })
-##################################################
-###################################################
-
-  ##################################################
-  ###################################################
-  ################ KEGG PATHWAY ANALYSIS#############
-  ###################################################
-  ###################################################
-
-#   datasetInput6 = reactive({
-#     validate(
-#       need(input$path, "Please choose either upregulated or downregulated")
-#     )
-#     final_res=datasetInput()
-#      #extract logfc values from limma output and the corresponsing entrez names after annotation
-#      logfc=final_res$logFC
-#      names(logfc)=final_res$ENTREZID
-#       myurl=character()
-#      #gives list of pathways thats upregulated and downregulated
-#      kegg_results = gage(logfc, gsets=kegg.sets.mm, same.dir=TRUE)
-#      l=input$num
-#      #user-input -upregulated/downregulated kegg pathway
-#     if(input$path=='up')
-#      {
-#        #pull the top n upregulated pathways  their id's
-#        kegg_path=data.frame(id=rownames(kegg_results$greater), kegg_results$greater)
-#        #kegg_path_fill=kegg_path[is.na(kegg_path$p.val)==FALSE,]
-#        kegg_path_top=data.frame(kegg_path[1:l,])
-#        keggresids = substr(kegg_path_top$id, start=1, stop=8)
-#        withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
-#        for (i in 1:length(keggresids)){
-#          pId=keggresids[i] #get KEGG id one by one in a  loop
-#          allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
-#          p=strsplit(allgenelist,":")
-#          genes_entrez=sapply(p,"[",2)
-#          genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
-#          genelist=paste0("mmu:",genelist)
-#          myurl[i]=mark.pathway.by.objects(pId,genelist)
-#        }
-#        })
-#        
-#        url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
-#        kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
-#        kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
-#        kegg_path_top=as.data.frame(kegg_path_top)
-#         return(kegg_path_top)
-#      }
-#      else if(input$path=='down')
-#      {
-#        #pull the top n downregulated pathways  their id's
-#        kegg_path=data.frame(id=rownames(kegg_results$less), kegg_results$less)
-#        kegg_path_top=data.frame(kegg_path[1:l,])
-#        keggresids = substr(kegg_path_top$id, start=1, stop=8)
-#        withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
-#        for (i in 1:length(keggresids)){
-#        pId=keggresids[i] #get KEGG id one by one in a  loop
-#        allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
-#        p=strsplit(allgenelist,":")
-#        genes_entrez=sapply(p,"[",2)
-#        genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
-#        genelist=paste0("mmu:",genelist)
-#        myurl[i]=mark.pathway.by.objects(pId,genelist)
-#        }
-#        })
-#        url= paste("http://www.genome.jp/dbget-bin/www_bget?pathway:",keggresids,sep = "")
-#        kegg_path_top$link1=paste0("<a href='",url,"'target='_blank'>","Link to KEGGdb","</a>")
-#        kegg_path_top$link2=paste0("<a href='",myurl,"'target='_blank'>","Link to KEGG","</a>")
-#        kegg_path_top=as.data.frame(kegg_path_top)
-#        return(kegg_path_top)
-#      }
-#   })
-#           
-#           output$kegg = DT::renderDataTable({
-#             input$num
-#             DT::datatable(datasetInput6(),
-#                            extensions = c('Buttons','Scroller'),
-#                            options = list(dom = 'Bfrtip',
-#                                           searchHighlight = TRUE,
-#                                           pageLength = 10,
-#                                           lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
-#                                           scrollX = TRUE,
-#                                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-#                            ),rownames=FALSE,escape=FALSE,caption="KEGG Pathways",selection = list(mode = 'single', selected =1))
-#           })
-#           
-#          kegggenes = reactive({
-#           keggpath=datasetInput6() 
-#           final_res=datasetInput()
-#            s=input$kegg_rows_selected 
-#            row=keggpath[s, ,drop=FALSE]
-#            keggid=row$id
-#            keggid = substr(keggid, start=1, stop=8)
-#           allgenelist=keggLink("mmu",keggid) #for each kegg id, get gene list
-#           p=strsplit(allgenelist,":")
-#           genes_entrez=sapply(p,"[",2)
-#           genelist=final_res[final_res$ENTREZID %in% genes_entrez,]
-#             return(genelist) #return the genelist
-#           })
-#           
-#          output$kegggenes = DT::renderDataTable({
-#            input$num
-#            DT::datatable(kegggenes(),
-#                          extensions = c('Buttons','Scroller'),
-#                          options = list(dom = 'Bfrtip',
-#                                         searchHighlight = TRUE,
-#                                         pageLength = 10,
-#                                         lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
-#                                         scrollX = TRUE,
-#                                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-#                          ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1,caption="Genelist"))
-#          })
           
-  #create plots for KEGG pathways
-#   output$plots = renderUI({
-#     input$makeplot
-#     keggresids=datasetInput6() #get KEGG id's of top n number  of pathways
-#     plot_output_list = lapply(1:length(keggresids), function(i)
-#       {
-#           plotname = paste("plot", i, sep="") #for every KEGG id, create a plot output in pathway plot tab
-#           plotOutput(plotname, height = 900, width = 800)
-#     })
-#     do.call(tagList, plot_output_list)
-#   })
-# 
-#   for (i in 1:15) { #maximum number of plots is 15
-#     local({
-#       my_i = i
-#       plotname = paste("plot", my_i, sep="")
-# 
-#       output[[plotname]] = renderImage({
-#         withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
-#             input$makeplot
-#               keggresids=datasetInput6() #get all KEGG id's
-#               #keggresids=keggids[is.na(keggids)==FALSE]
-#               final_res=datasetInput0.5()
-#               pId=keggresids[my_i] #get KEGG id one by one in a  loop
-#               allgenelist=keggLink("mmu",pId) #for each kegg id, get gene list
-#               p=strsplit(allgenelist,":")
-#               genes_entrez=sapply(p,"[",2)
-#               genelist=final_res$ENTREZID[final_res$ENTREZID %in% genes_entrez]
-# #               validate(
-# #                 need(length(genelist) >0, "No match")
-# #               )
-#               myurl=mark.pathway.by.objects(pId,genelist) #get url of pathway image
-#               outfile = tempfile(fileext='.png') #create temp file
-#               png(outfile, width=900, height=800) #get temp file in png format
-#               download.file(myurl,outfile,mode="wb") #download png into the temp file
-#               png = readPNG(outfile) # read the PNG from the temp file and display
-#               dev.off()
-# 
-#              list(src = outfile,contentType = 'image/png',width = 900,height = 800,alt = "This is alternate text")
-#         })
-#           }, deleteFile = TRUE) #delete temp file
-#     })
-#   }
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # display plots in Pathway PLot tab
-#   observe({
-#     if(input$makeplot > 0)
-#     {
-#       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tab5')
-#     }
-#   })
+          output$spiadesc <- renderText({
+            s = input$spiaop_rows_selected
+            dt = spia_op() 
+            dt = dt[s, , drop=FALSE]
+            camname=dt$Name
+            text=paste('Gene list for SPIA term :',camname,'-',dt[2],sep="")
+            
+            return(text)
+          })
+          
+         output$spiagenes = DT::renderDataTable({
+           DT::datatable(spiagenes(),
+                         extensions = c('Buttons','Scroller'),
+                         options = list(dom = 'Bfrtip',
+                                        searchHighlight = TRUE,
+                                        pageLength = 10,
+                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+                                        scrollX = TRUE,
+                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                         ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1,caption="Genelist"))
+         })
+          
+         
+         # update tab with spia results
+         observe({
+           if(input$runspia > 0)
+           {
+             updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'spia')
+           }
+         })
 
   ##################################################
   ##################################################
