@@ -586,7 +586,7 @@ shinyServer(function(input, output,session) {
             #get gene list from indices
             if (cameradd == "GO")
             {
-              res2=datasetInput0.5()
+              #res2=datasetInput0.5()
           k=paste('res2$ENTREZID[cameraind$`',cam$name,'`]',sep='')}
             else{
               k=paste('res2$ENTREZID[cameraind$',cam$name,']',sep='')
