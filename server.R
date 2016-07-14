@@ -27,7 +27,6 @@ library(rgl)
 library(rglwidget)
 library(SPIA)
 library(ReactomePA)
-#library(Factoshiny)
 
 #load entrez id's for kegg pathway
 data(kegg.sets.mm)
@@ -39,7 +38,7 @@ kegg.sets.mm = kegg.sets.mm[sigmet.idx.mm]
 data(go.sets.mm)
 data(go.subs.mm)
 
-#Create atheme for all plots.
+#Create a theme for all plots.
 plotTheme <-theme_bw() + theme(axis.title.x = element_text(face="bold", size=16),
                                axis.text.x  = element_text(angle=0, vjust=0.5, size=14),
                                axis.title.y = element_text(face="bold", size=16),
@@ -129,6 +128,7 @@ shinyServer(function(input, output,session) {
   datasetInput = reactive({
     contrast=input$contrast #select contrast
     limmadata=datasetInput0.5()
+    limmadata=subset(limmadata, select=-c(logFC))
     lfc=as.numeric(input$lfc) #get logFC
     apval=as.numeric(input$apval)#get adjusted P.Vals
     if(is.null(input$radio))

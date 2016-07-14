@@ -120,6 +120,7 @@ dashboardPage(
                          ),
                          br(),h4("~~~~Limma data~~~~"),
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
+                         h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
                          br(),DT::dataTableOutput('table')),
                 #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
                 tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
