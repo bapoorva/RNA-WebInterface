@@ -241,7 +241,7 @@ shinyServer(function(input, output,session) {
                     lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                     scrollX = TRUE,
                     buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                  ),rownames=FALSE,selection = list(mode = 'single', selected =1),escape=FALSE)
+                  ),rownames=TRUE,selection = list(mode = 'single', selected =1),escape=FALSE)
   })
 
   #display tab with the table only when the multiple contrast checkbox and the contrasts are selected
@@ -312,6 +312,8 @@ shinyServer(function(input, output,session) {
   dotplot_out = reactive({
     s = input$table_rows_selected #select rows from table
     dt = datasetInput() #load limma data
+    dt$id=rownames(dt)
+    dt=data.frame(dt$id,dt[,-ncol(dt)])
     validate(
       need((is.data.frame(dt) && nrow(dt))!=0, "No data in table")
     )
@@ -358,7 +360,7 @@ shinyServer(function(input, output,session) {
   res_pca = reactive({
     n=as.numeric(input$pcipslide)
     validate(
-      need(input$pcipslide > 2, "Minimum value of input genes that show maximum variance should at least be 2")
+      need(input$pcipslide > 199, "Minimum value of input genes that show maximum variance should at least be 200")
     )
     results=fileload()
     v = results$eset
@@ -441,7 +443,7 @@ shinyServer(function(input, output,session) {
 #      x=as.numeric(sapply(k,"[",1))
 #      y=as.numeric(sapply(k,"[",2))
      validate(
-       need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 1")
+       need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
      )
      fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))
    })
@@ -461,7 +463,9 @@ shinyServer(function(input, output,session) {
      v=datasetInput3()
      results=fileload()
      pData=pData(results$eset)
-     pca <- prcomp( t(v), scale= TRUE )
+     v=t(v)
+     v= v[,apply(v, 2, var, na.rm=TRUE) != 0]
+     pca <- prcomp( v, scale= TRUE )
      vars <- apply(pca$x, 2, var)
      props <- round((vars / sum(vars))*100,1)
      groups=factor(gsub('-','_',pData$maineffect))
@@ -594,6 +598,7 @@ shinyServer(function(input, output,session) {
           genes=eval(parse(text = k)) #get entrez id's corresponding to indices
           #genesid=res[match(res$ENTREZID,genes),]
           genesid=res2[res2$ENTREZID %in% genes,] #get limma data corresponding to entrez id's
+          rownames(genesid)=genesid$id
           return(data.frame(genesid)) #return the genelist
         })
 
@@ -610,7 +615,7 @@ shinyServer(function(input, output,session) {
                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                        ),rownames=FALSE,escape=FALSE,caption="GENE LIST")
+                        ),rownames=TRUE,escape=FALSE,caption="GENE LIST")
         })
         
 #         output$campick3 = DT::renderDataTable({
@@ -744,6 +749,9 @@ shinyServer(function(input, output,session) {
             sp=eval(parse(text = c)) #convert string to variable
             #spia_result=data.frame(name=rownames(sp),sp)
             spia_result=data.frame(sp)
+            validate(
+              need(nrow(spia_result) > 1, "No Results")
+            )
             spia_result$KEGGLINK <- paste0("<a href='",spia_result$KEGGLINK,"' target='_blank'>","Link to KEGG","</a>")
             return(spia_result) 
           })
@@ -1099,6 +1107,9 @@ shinyServer(function(input, output,session) {
     input$table4_rows_selected
     input$tablecam_rows_selected
     input$radio
+    input$projects
+    input$contrast
+    input$cameradd
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     isolate({
       if(input$hmip == 'genenum'){heatmap()}
