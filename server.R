@@ -1004,8 +1004,11 @@ shinyServer(function(input, output,session) {
     if(input$selectidentifier=='ensembl')
     {
       expr_vals=voom[rownames(voom) %in% genelist,]
-      sym=limma$SYMBOL[rownames(limma) %in% genelist]
-      expr_vals=data.frame(expr_vals,sym)
+      sym=limma[limma$ENSEMBL %in% genelist]
+      sym=sym[,c("ENSEMBL","SYMBOL")]
+      expr_vals=merge(expr_vals,sym,by="row.names")
+      rownames(expr_vals)=expr_vals$Row.names
+      expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
     }
     else if(input$selectidentifier=='entrez')
     {
