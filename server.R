@@ -282,7 +282,7 @@ shinyServer(function(input, output,session) {
                     pageLength = 10,
                     lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                     scrollX = TRUE,
-                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                    buttons = c('copy', 'print')
                   ),rownames=FALSE,caption= "Voom data")
   })
   # display data in tab2
@@ -292,6 +292,12 @@ shinyServer(function(input, output,session) {
   })
 
 
+  output$rawdwld <- downloadHandler(
+    filename = function() { paste(input$projects, '_rawdata.csv', sep='') },
+    content = function(file) {
+      write.csv(datasetInput33(), file)
+    })
+  
   ###################################################
   ###################################################
   ##################### DOT PLOT ####################
@@ -434,20 +440,38 @@ shinyServer(function(input, output,session) {
        return(text)
    })
    
-   output$biplot = renderPlot({
-     #input$pcaaxes
+   plotbiplot = reactive({
      res.pca = res_pca()
      x=as.numeric(input$pcaxaxes)
      y=as.numeric(input$pcayaxes)
-#      k=strsplit(pcaaxes,"_")
-#      x=as.numeric(sapply(k,"[",1))
-#      y=as.numeric(sapply(k,"[",2))
      validate(
        need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
      )
      fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))
    })
    
+   output$biplot = renderPlot({
+     plotbiplot()
+   })
+   
+   
+#    output$downloadbiplot <- downloadHandler(
+#      filename = function(){
+#        paste0('biplot', '.html', sep='')
+#      },
+#      content = function(file){
+#        saveWidget(plotbiplot(),file)
+#      })
+   
+   output$downloadbiplot <- downloadHandler(
+     filename = function() {
+       paste0("biplot.jpg")
+     },
+     content = function(file){
+       jpeg(file, quality = 100, width = 800, height = 800)
+       plot(plotbiplot())
+       dev.off()
+     })
    
    observe({
      if(input$makepcaplot>0){
@@ -821,7 +845,12 @@ shinyServer(function(input, output,session) {
              updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'spia')
            }
          })
-
+         
+         output$dwldspia <- downloadHandler(
+           filename = function() { paste(input$projects,'_',input$contrast, '_spia.csv', sep='') },
+           content = function(file) {
+             write.csv(spiaop(), file)
+           })
   ##################################################
   ##################################################
   ############## GAGE GENE ONTOLOGY ################

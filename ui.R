@@ -26,7 +26,10 @@ dashboardPage(
                      ),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    br(),
-                   actionButton(inputId = 'rawdata', label = 'Click to view the Raw expression data'),
+                   fluidRow(
+                     column(6,actionButton(inputId = 'rawdata', label = 'Click to view the Raw expression data')),
+                     column(6,downloadButton('rawdwld','Download Raw Data'))
+                     ),
                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    fluidRow(
@@ -36,7 +39,7 @@ dashboardPage(
                      column(6,textInput(inputId = 'lfc', label = "Enter Fold Change cutoff", value = '2')),
                      column(6,textInput(inputId = 'apval', label = "Enter Adjusted P.Value cutoff", value = '0.05'))
                    ),
-                   downloadButton('dwld','Download Data'),
+                   downloadButton('dwld','Download results table'),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    hr(),
                    h4('Generate Heatmap'),
@@ -71,6 +74,7 @@ dashboardPage(
                      column(6,checkboxInput("varpc", label = "Display Variances of PC", value = FALSE)),
                      column(6,checkboxInput("pca3d", label = "Also show 3D plot", value = FALSE))
                    ),
+                   downloadButton('downloadbiplot', 'Download Biplot'),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    hr(),
                    h4('GSEA using Camera'),
@@ -82,19 +86,12 @@ dashboardPage(
                    ),
                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#                    br(),
-#                    actionButton(inputId = 'runspia', label = 'Click to run SPIA'),
-#                    hr(),
-                   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    h4('Pathway Analysis using SPIA'),
-                   actionButton(inputId = 'runspia', label = 'Click to run SPIA'),
-#                    fluidRow(
-#                      column(6, radioButtons(inputId = 'path', label = h5("KEGG Pathway"), choices = c("Upregulated" = 'up', "Downregulated" = 'down'),selected = 1)),
-#                      br(),
-#                      column(6, textInput(inputId = 'num', label = "Top num of pathways", value = '10')),
-#                      column(6,actionButton(inputId = 'makeplot', label = 'View KEGG Results')),
-#                      width=4
-#                    ),
+                    fluidRow(
+                      column(6,actionButton(inputId = 'runspia', label = 'Click to run SPIA')),
+                      column(6,downloadButton('dwldspia', 'Download SPIA table'))
+                    ),
+                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    hr(),
                    h4('GO Analysis using GAGE'),
                    fluidRow(
