@@ -122,12 +122,12 @@ dashboardPage(
                 #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
                 tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
-                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"), 
+                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),
                     fluidRow(
-                        column(6,d3heatmapOutput('heatmap',width=850,height=1150)),
-                        column(width = 5, offset = 0.5,plotOutput('hmpscale_out',width = 50,height = 150))
-                    )),
-                
+                        column(6,h4("")),
+                        column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
+                    ),
+                d3heatmapOutput('heatmap',width=850,height=1150)),
                 
                 tabPanel(title = 'PCA Plot', value = 'tabpca',
                          fluidRow(
@@ -173,6 +173,7 @@ dashboardPage(
                          br(),
                          h4(p(strong("5. PCA Plot"))),
                          h4(p(div("Click on",strong("Click to view PCA Plot"),"button to view the biplot in the",span("PCA Plot tab",style="color:blue"),"You can select the principle component to plot on the x and y axis of the plot from the drop-down menu. You can also specify the number of top genes showing maximum variance to be used as the input for the bioplot as well as the number of genes you want to view in the plot. Select ",em("Display variances of PC"),"to view the barplot showing the proportion of variance retained by each principle component.","Select ",em("Also show 3D plot"),"to view the 3D plot of the top 3 principle components"))),
+                         h4("Helpful Links:", a("Click Here for information on PCA biplot", href="http://www.nature.com/nbt/journal/v26/n3/full/nbt0308-303.html")),
                          br(),
                          h4(p(strong("6. GSEA using Camera"))),
                          h4("Click on",strong("Click to view Camera results"),"button to view Camera results in the",span("GSEA tab",style="color:blue")),
@@ -180,15 +181,19 @@ dashboardPage(
                          h4(p(div("The Camera function in the limma package for testing differential expression, tests whether a set of genes is highly ranked relative to other genes in terms of differential expression. It takes into account the inter-gene correlation.CAMERA, an acronym for Correlation Adjusted MEan RAnk gene set test, is based on the idea of estimating the variance inflation factor associated with inter-gene correlation, and incorporating this into parametric or rank-based test procedures. It returns the number of genes in the set, the inter-gene correlation value, the direction of change (Up or Down), the two-tailed p-value and the Benjamini & Hochberg FDR adjusted P-value"))),
                          h4(p(div(span("The GSEA tab",style="color:blue"), "will display the Camera output in a table. Clicking on any row will display the gene list from the user dataset that belongs to that Gene set category in table below it. Select",em('Heatmap from Camera'),"from the Heatmap input drop-down menu to view the Heatmap for those genes in the Heatmap tab"))),
                          h4(p(div("Click on",em("Download Camera Data"),"button to download the table as a csv file"))),
+                         h4("Helpful Links:", a("Click Here for for information on Camera", href="http://nar.oxfordjournals.org/content/early/2012/05/24/nar.gks461.full")),
                          br(),
                          h4(p(strong("7. Pathway Analysis using SPIA"))),
                          h4("Click on the",em("Click to run SPIA"),"button to view the the results from SPIA"),
+                         h4("Helpful Links: Click", a("here", href="http://www.bioconductor.org/packages/release/bioc/vignettes/SPIA/inst/doc/SPIA.pdf"),"and",a("here", href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1987343/"),"for information on SPIA"),
+            
                          br(),
                          h4(p(strong("8. Gene Ontology using GAGE"))),
                          h4("Select the Ontology and upregulated/downregulated from the drop down menu and click on the",strong("Select Ontology"),"button to view the Gene Ontology results and the genes corresponding to each GO-term in the",span("Gene Ontology tab",style="color:blue")),
                          h4(p(div(span("The Gene Ontology tab",style="color:blue"), "will display the GO output for that ontology in a table. Clicking on any row will display the gene list from the user dataset that belong to that GO-term in table below it. Select",strong('Heatmap from GO'),"from the Heatmap input drop-down menu to view the Heatmap for those genes in the Heatmap tab"))),
                          
-                         h4(p(div("Click on",strong("Download GO Data"),"button to download the table as a csv file")))
+                         h4(p(div("Click on",strong("Download GO Data"),"button to download the table as a csv file"))),
+                         h4("Helpful Links:", a("Click Here for information on GAGE", href="http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-161"))
                          )
     )
   ))

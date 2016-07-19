@@ -1124,7 +1124,7 @@ shinyServer(function(input, output,session) {
       val=sort(c(-2,-1,0,1,2),decreasing=FALSE)
     }
     df <- data.frame(x = rep(1, 5),y = val,z = factor(1:5))
-    ggplot(df, aes(x, y)) +geom_tile(aes(fill = z))+scale_fill_brewer( type = "div" , palette = hmpcol)+guides(fill=FALSE)+theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank())
+    ggplot(df, aes(x, y)) +geom_tile(aes(fill = z))+scale_fill_brewer( type = "div" , palette = hmpcol)+guides(fill=FALSE)+theme(axis.title.x=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.title.y=element_blank())+coord_flip()
     })
   
   output$hmpscale_out = renderPlot({
