@@ -122,7 +122,13 @@ dashboardPage(
                 #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
                 tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
-                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"), d3heatmapOutput('heatmap',width=850,height=1150)),
+                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"), 
+                    fluidRow(
+                        column(6,d3heatmapOutput('heatmap',width=850,height=1150)),
+                        column(width = 5, offset = 0.5,plotOutput('hmpscale_out',width = 50,height = 150))
+                    )),
+                
+                
                 tabPanel(title = 'PCA Plot', value = 'tabpca',
                          fluidRow(
                            column(6,uiOutput("pcaxoptions")),

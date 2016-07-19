@@ -1113,7 +1113,24 @@ shinyServer(function(input, output,session) {
     d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
   }
-
+  
+  #manually create scale (colorkey) for heatmap
+  
+  hmpscale <- reactive({
+    hmpcol=input$hmpcol #user input-color palette
+    if(input$checkbox==TRUE){
+    val=sort(c(-2,-1,0,1,2),decreasing=TRUE)}
+    else{
+      val=sort(c(-2,-1,0,1,2),decreasing=FALSE)
+    }
+    df <- data.frame(x = rep(1, 5),y = val,z = factor(1:5))
+    ggplot(df, aes(x, y)) +geom_tile(aes(fill = z))+scale_fill_brewer( type = "div" , palette = hmpcol)+guides(fill=FALSE)+theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank())
+    })
+  
+  output$hmpscale_out = renderPlot({
+    hmpscale()
+  })
+  
   #Text title for type of heatmap being displayed in the heatmap tab
   output$htitle <- renderText({
     hmip=input$hmip
