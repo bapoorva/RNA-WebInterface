@@ -32,7 +32,7 @@ library(ReactomePA)
 data(kegg.sets.mm)
 #load indexes for signaling and metabolic pathways
 data(sigmet.idx.mm)
-#get entrez id's for signaling and metabolic pathways
+#get entrez id's for signaling and metabolic pathwaysmera
 kegg.sets.mm = kegg.sets.mm[sigmet.idx.mm]
 
 data(go.sets.mm)
@@ -324,14 +324,14 @@ shinyServer(function(input, output,session) {
       need((is.data.frame(dt) && nrow(dt))!=0, "No data in table")
     )
     dt1 = dt[s, , drop=FALSE]#get limma data corresponding to selected row in table
-    id = dt[s,1] 
+    id = as.character(dt[s,1]) 
     results=fileload()
     eset <- results$eset
     e <-data.frame(eset@phenoData@data,signal=exprs(eset)[id,])
     if(is.na(dt1$SYMBOL)) #if gene symbol does not exist,use ENSEMBL id
     {genesymbol=dt1$ENSEMBL}
     else{
-    genesymbol=dt1$SYMBOL} #get the gene symbol of the row selected
+      genesymbol=dt1$SYMBOL} #get the gene symbol of the row selected
     ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
       labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
       stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)#plot data
@@ -373,7 +373,7 @@ shinyServer(function(input, output,session) {
     keepGenes <- v@featureData@data
     #keepGenes <- v@featureData@data %>% filter(!(seq_name %in% c('X','Y')) & !(is.na(SYMBOL)))
     pData<-phenoData(v)
-    v.filter = v[rownames(v@assayData$exprs) %in% keepGenes$ENSEMBL,]
+    v.filter = v[rownames(v@assayData$exprs) %in% rownames(keepGenes),]
     Pvars <- apply(exprs(v.filter),1,var)
     select <- order(Pvars, decreasing = TRUE)[seq_len(min(n,length(Pvars)))]
     v.var <-v.filter[select,]
