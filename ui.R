@@ -112,13 +112,13 @@ dashboardPage(
     tabsetPanel(type="tabs", id = "tabvalue",
                 tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(6,plotOutput('dotplot',width = 900,height = 400)),
+                           column(6,plotlyOutput('dotplot',width = 900,height = 400)),
                            column(width = 3, offset = 2,uiOutput("boxplotcol"))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
                          h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
-                         br(),DT::dataTableOutput('table')),
+                         br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
                 #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
                 tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),

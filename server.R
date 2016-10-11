@@ -229,6 +229,16 @@ shinyServer(function(input, output,session) {
     return(m)
   })
   
+  #Display text (contrast name) above limma table
+  output$contrdesc <- renderText({
+    contrastname=input$contrast
+    text=paste('CONTRAST:  ',contrastname,sep="   ")
+    
+    return(text)
+  })
+
+  
+
   #update table with the dataframe
   output$table_TRUE = DT::renderDataTable({
     input$project
@@ -332,14 +342,14 @@ shinyServer(function(input, output,session) {
     {genesymbol=dt1$ENSEMBL}
     else{
       genesymbol=dt1$SYMBOL} #get the gene symbol of the row selected
-    ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
+    gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
       labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
       stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)#plot data
-    
+    gg=ggplotly(gg)
   })
 
   # output dotplot
-  output$dotplot = renderPlot({
+  output$dotplot = renderPlotly({
     dotplot_out()
   })
 
@@ -1032,10 +1042,10 @@ shinyServer(function(input, output,session) {
         # user-defined identifier for the gene list
     if(input$selectidentifier=='ensembl')
     {
-      expr_vals=voom[rownames(voom) %in% genelist,]
-      sym=limma[limma$ENSEMBL %in% genelist]
-      sym=sym[,c("ENSEMBL","SYMBOL")]
-      expr_vals=merge(expr_vals,sym,by="row.names")
+      #expr_vals=voom[rownames(voom) %in% genelist,]
+      sym=limma[limma$ENSEMBL %in% genelist,] %>% select(ENSEMBL,SYMBOL)
+      #sym=sym[,c("ENSEMBL","SYMBOL")]
+      expr_vals=merge(voom,sym,by="row.names")
       rownames(expr_vals)=expr_vals$Row.names
       expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
     }
