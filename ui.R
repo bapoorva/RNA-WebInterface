@@ -113,7 +113,7 @@ dashboardPage(
     tabsetPanel(type="tabs", id = "tabvalue",
                 tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(6,plotlyOutput('dotplot',width = 1100,height = 700)),
+                           column(6,plotlyOutput('dotplot',width = 1100,height = 600)),
                            column(width = 3, offset = 2,uiOutput("boxplotcol"))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
