@@ -13,8 +13,9 @@ dashboardPage(
                    div(style="overflow-y: scroll"),
                    tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
                    fluidRow(
-                     column(6,uiOutput("projects")),
-                     column(6,uiOutput("contrasts"))
+                     column(6,uiOutput("projects"))),
+                   fluidRow(
+                     column(12,uiOutput("contrasts"))
                    ),
                    fluidRow(
                      column(6,h4("")),
@@ -112,7 +113,7 @@ dashboardPage(
     tabsetPanel(type="tabs", id = "tabvalue",
                 tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(6,plotlyOutput('dotplot',width = 900,height = 400)),
+                           column(6,plotlyOutput('dotplot',width = 1100,height = 700)),
                            column(width = 3, offset = 2,uiOutput("boxplotcol"))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
@@ -143,7 +144,13 @@ dashboardPage(
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip"),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
                 tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
-                tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),
+                
+                tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800),br(), DT::dataTableOutput('eplottab')),
+                
+                
+                #tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),
+                
+                
                 #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),

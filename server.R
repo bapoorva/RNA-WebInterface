@@ -27,6 +27,7 @@ library(rgl)
 library(rglwidget)
 library(SPIA)
 library(ReactomePA)
+library(limma)
 
 #load entrez id's for kegg pathway
 data(kegg.sets.mm)
@@ -680,22 +681,23 @@ shinyServer(function(input, output,session) {
 ############### ENRICHMENT PLOT ###################
 ###################################################
 ###################################################
-      
-        ep_out <- reactive({
-          results=fileload()
-          contrasts=input$contrast
-          res=paste("results$eplot$",contrasts,sep="")
-          tab=eval(parse(text =res))
-          validate(
-            need(nrow(tab) > 1, "No Enriched Pathways found")
-          )
-          return(tab)
-        })
-        
+
+#         ep_out <- reactive({
+#           results=fileload()
+#           contrasts=input$contrast
+#           res=paste("results$eplot$",contrasts,sep="")
+#           tab=eval(parse(text =res))
+#           validate(
+#             need(nrow(tab) > 1, "No Enriched Pathways found")
+#           )
+#           return(tab)
+#         })
         output$eplottab = DT::renderDataTable({
           input$eplot
-          input$contrasts
-          DT::datatable(ep_out(),
+          input$camera
+          input$cameradd
+          input$contrast
+          DT::datatable(geneid(),
                         extensions = c('Buttons','Scroller'),
                         options = list(dom = 'Bfrtip',
                                        searchHighlight = TRUE,
@@ -707,10 +709,10 @@ shinyServer(function(input, output,session) {
           })
        
         output$eplotdesc <- renderText({
-          res=ep_out()
+          res=geneid()
           s=input$eplottab_rows_selected 
           row=res[s, ,drop=FALSE]
-          id=row$Description
+          id=row$name
           text=paste('Enrichment plot for :',id,sep="")
           
           return(text)
@@ -718,15 +720,23 @@ shinyServer(function(input, output,session) {
         
         
         output$en_plot <- renderPlot({
-          res=ep_out()
+          res=geneid()
+          cameradd=input$cameradd
+          contrast=input$contrast
+          lim=datasetInput0.5()
+          stat=data.frame(t=lim$t)
+          stat$id=rownames(lim)
+          stat=stat[order(stat$id),]
+          stat2=stat$t
+          names(stat2)=stat$id
           s=input$eplottab_rows_selected 
           row=res[s, ,drop=FALSE]
-          id=row$ID
+          id=row$name
           results=fileload()
           contrasts=input$contrast
-          y=paste("results$gsea$",contrasts,sep="")
-          y2=eval(parse(text =y))
-          gseaplot(y2, geneSetID = id)
+          y=paste('results$camera$',contrast,'$',cameradd,'$indices$',id,sep='')
+          ind=eval(parse(text =y))
+          barcodeplot(stat2,index=ind)
         })
         
          observe({
