@@ -162,7 +162,8 @@ shinyServer(function(input, output,session) {
       d$link<-NULL
     }else{
     d$link=paste0("<a href='",url,"'target='_blank'>","Link to GeneCard","</a>")}
-    d=as.data.frame(d)
+    d=as.data.frame(d) 
+    #d=as.data.frame(d) %>% select(-t)
     return(d)
   })
 
