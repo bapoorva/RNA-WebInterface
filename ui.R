@@ -113,8 +113,10 @@ dashboardPage(
     tabsetPanel(type="tabs", id = "tabvalue",
                 tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(6,plotlyOutput('dotplot',width = 1100,height = 600)),
-                           column(width = 3, offset = 2,uiOutput("boxplotcol"))
+                           column(width = 3,uiOutput("boxplotcol"))
+                         ),
+                         fluidRow(
+                           column(6,plotlyOutput('dotplot',width = 1100,height = 600))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
@@ -137,9 +139,11 @@ dashboardPage(
                          ),
                          br(),textOutput("biplottitle"),br(),
                          fluidRow(
-                           column(6,plotOutput("biplot",width=900,height=850)),
-                           column(width = 3, offset =2,uiOutput("pcipslide")),
-                           column(width = 3, offset =2,uiOutput("pcslide"))
+                           column(6,uiOutput("pcipslide")),
+                           column(6,uiOutput("pcslide"))
+                         ),br(),
+                         fluidRow(
+                           column(6,plotOutput("biplot",width=900,height=850))
                 )),
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip"),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
