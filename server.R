@@ -327,6 +327,11 @@ shinyServer(function(input, output,session) {
     selectInput("color","Select an Attribute",bpcols) #populate drop down menu with the phenodata columns
   })
 
+  #textbox to enter x-axis variables
+  output$boxreorder <- renderUI({
+    textInput("boxlist", label = h5("Enter x-axis variables in the preferred order"), value = "")
+  })
+  
   dotplot_out = reactive({
     s = input$table_rows_selected #select rows from table
     dt = datasetInput() #load limma data
@@ -344,9 +349,23 @@ shinyServer(function(input, output,session) {
     {genesymbol=dt1$ENSEMBL}
     else{
       genesymbol=dt1$SYMBOL} #get the gene symbol of the row selected
-    gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
+    
+    #To reorder x-axis, take in input list, split by comma and pass that as a variable to ggplot
+    a=input$boxlist
+    aa=strsplit(a,",")
+    aaa=unlist(aa)
+    me=factor(e$maineffect,levels=c(aaa))
+    
+    if(input$boxreorder>0){
+    gg=ggplot(e,aes_string(x=me,y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
       labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
-      stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)#plot data
+      stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
+    }
+    else{
+      gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
+        labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
+        stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
+    }#plot data
     gg=ggplotly(gg)
   })
 
@@ -885,8 +904,39 @@ shinyServer(function(input, output,session) {
     final_res=datasetInput() #get limma data
     logfc=final_res$fc #get FC values from limma data
     names(logfc)=final_res$ENTREZID # get entrez ids for each row
+    results=fileload()
+    pd=pData(results$eset)
+    organism=pd$organism
+    validate(
+      need(length(unique(organism))==1,"Please check pData file for errors in organism column. Does it have more than one organism ?")
+    )
+    organism=pd$organism[1]
+    if(organism=="human")
+     {
+       data(go.sets.hs) #load GO data from gage
+       data(go.subs.hs)
+       
+       if(input$gage=='BP')
+       {
+         gobpsets = go.sets.hs[go.subs.hs$BP]
+         go_res = gage(logfc, gsets=gobpsets)
+       }
+       else if(input$gage=='cc')
+       {
+         goccsets = go.sets.hs[go.subs.hs$CC]
+         go_res = gage(logfc, gsets=goccsets, same.dir=TRUE)
+       }
+       else if(input$gage=='MF')
+       {
+         gomfsets = go.sets.hs[go.subs.hs$MF]
+         go_res = gage(logfc, gsets=gomfsets, same.dir=TRUE)
+       }
+     }
+       else
+       {
     data(go.sets.mm) #load GO data from gage
     data(go.subs.mm)
+    
     if(input$gage=='BP')
     {
       gobpsets = go.sets.mm[go.subs.mm$BP]
@@ -902,6 +952,7 @@ shinyServer(function(input, output,session) {
       gomfsets = go.sets.mm[go.subs.mm$MF]
       go_res = gage(logfc, gsets=gomfsets, same.dir=TRUE)
     }
+       }
     return(go_res)
   })
 
@@ -974,8 +1025,16 @@ shinyServer(function(input, output,session) {
     s = input$table4_rows_selected
     dt = datasetInput8() #load GO data
     dt = dt[s, , drop=FALSE] #get GO data corresponding to selected row in table
+    results=fileload()
+    pd=pData(results$eset)
+    organism=pd$organism[1]
     goid=dt$GO_id
-    enterezid=paste("go.sets.mm$`",goid,"`",sep="")
+    if(organism=="human"){
+    enterezid=paste("go.sets.hs$`",goid,"`",sep="")
+    }
+    else{
+      enterezid=paste("go.sets.mm$`",goid,"`",sep="")
+    }
     entrezid=eval(parse(text=enterezid))
     limma=datasetInput()
     lim_vals=limma[limma$ENTREZID %in% entrezid,]
