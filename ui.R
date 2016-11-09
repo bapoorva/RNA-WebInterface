@@ -1,5 +1,5 @@
 library(shinydashboard)
-library(shinyIncubator)
+#library(shinyIncubator)
 library(shiny)
 library(plotly)
 library(d3heatmap)

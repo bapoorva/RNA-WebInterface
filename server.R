@@ -635,13 +635,13 @@ shinyServer(function(input, output,session) {
           cam=geneid() #get datatable with camera data from reactive
           s=input$tablecam_rows_selected # get  index of selected row from table
           cam=cam[s, ,drop=FALSE]
-            res2=datasetInput0.5()
-#             res2=datasetInput33()
-#             if("ENTREZID" %in% colnames(res2)){
-#               res2=res2
-#             }
-#             else{res2=res}
-#           
+            res=datasetInput0.5()
+            res2=datasetInput33()
+            if("ENTREZID" %in% colnames(res2)){
+              res2=res2
+            }
+            else{res2=res}
+          
             #get gene list from indices
             if (cameradd == "GO")
             {
@@ -652,8 +652,8 @@ shinyServer(function(input, output,session) {
             }
           genes=eval(parse(text = k)) #get entrez id's corresponding to indices
           #genesid=res[match(res$ENTREZID,genes),]
-          genesid=res2[res2$ENTREZID %in% genes,] #get limma data corresponding to entrez id's
-          rownames(genesid)=genesid$id
+          genesid=res[res$ENTREZID %in% genes,] #get limma data corresponding to entrez id's
+          #rownames(genesid)=genesid$id
           return(data.frame(genesid)) #return the genelist
         })
 
@@ -783,7 +783,8 @@ shinyServer(function(input, output,session) {
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
           sym=pval$SYMBOL
-          top_expr=data.frame(expr[,-1])
+          #top_expr=data.frame(expr[,-1])
+          top_expr=data.frame(expr)
           if(input$checkbox==TRUE){
             d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
           else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
