@@ -635,13 +635,13 @@ shinyServer(function(input, output,session) {
           cam=geneid() #get datatable with camera data from reactive
           s=input$tablecam_rows_selected # get  index of selected row from table
           cam=cam[s, ,drop=FALSE]
-            res=datasetInput0.5()
-            res2=datasetInput33()
-            if("ENTREZID" %in% colnames(res2)){
-              res2=res2
-            }
-            else{res2=res}
-          
+            res2=datasetInput0.5()
+#             res2=datasetInput33()
+#             if("ENTREZID" %in% colnames(res2)){
+#               res2=res2
+#             }
+#             else{res2=res}
+#           
             #get gene list from indices
             if (cameradd == "GO")
             {
@@ -1214,10 +1214,21 @@ shinyServer(function(input, output,session) {
   #Text title for type of heatmap being displayed in the heatmap tab
   output$htitle <- renderText({
     hmip=input$hmip
+    
     if(input$hmip=="genenum"){text="Heatmap of Top Genes "}
     else if(input$hmip=="geneli"){text="Heatmap of Genelist "}
-    if(input$hmip=="hmpgo"){text="GO Heatmap"}
-    if(input$hmip=="hmpcam"){text="Camera Heatmap"}
+    if(input$hmip=="hmpgo"){
+      s2 = input$table4_rows_selected
+      dt2 = datasetInput8() #load GO data
+      dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
+      goid=dt2$GOterm
+      text=paste("Heatmap of GO term:",goid,sep="")}
+    if(input$hmip=="hmpcam"){
+      s3 = input$tablecam_rows_selected
+      dt3 = geneid() 
+      dt3 = dt3[s3, , drop=FALSE] 
+      camname=dt3$name
+      text=paste("Heatmap of camera term :",camname,sep="")}
     return(text)
   })
 

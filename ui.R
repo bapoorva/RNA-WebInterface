@@ -113,8 +113,18 @@ dashboardPage(
     tabsetPanel(type="tabs", id = "tabvalue",
                 tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(width = 3,uiOutput("boxplotcol"))
+                           column(6,uiOutput("boxplotcol")),
+                           column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
                          ),
+#                          fluidRow(
+#                            column(6,h4("")),
+#                            column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
+#                          ),
+                         conditionalPanel(
+                           condition = "input.boxreorder ==true",
+                           uiOutput("boxreorder")
+                         ),
+                         
                          fluidRow(
                            column(6,plotlyOutput('dotplot',width = 1100,height = 600))
                          ),
