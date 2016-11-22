@@ -8,8 +8,8 @@ library(rglwidget)
 library(SPIA)
 
 dashboardPage(
-  dashboardHeader(title = "RNA-Seq Analysis Web Interface",titleWidth = 500),
-  dashboardSidebar(width = 500,
+  dashboardHeader(title = "RNA-Seq Analysis Web Interface",titleWidth = 350),
+  dashboardSidebar(width = 350,
                    div(style="overflow-y: scroll"),
                    tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
                    fluidRow(
@@ -27,10 +27,14 @@ dashboardPage(
                      ),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    br(),
-                   fluidRow(
-                     column(6,actionButton(inputId = 'rawdata', label = 'Click to view the Raw expression data')),
-                     column(6,downloadButton('rawdwld','Download Raw Data'))
-                     ),
+#                    fluidRow(
+#                      column(6,
+                            actionButton(inputId = 'rawdata', label = 'Click to view the Raw expression data'),br(),br(),
+                     #),
+                     # column(6,
+                            downloadButton('rawdwld','Download Raw Data'),
+# )
+#                      ),
                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    fluidRow(
@@ -126,7 +130,7 @@ dashboardPage(
                          ),
                          
                          fluidRow(
-                           column(6,plotlyOutput('dotplot',width = 1100,height = 600))
+                           column(6,plotlyOutput('dotplot',width = 500,height = 300))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
@@ -140,7 +144,7 @@ dashboardPage(
                         column(6,uiOutput('hmplim')),
                         column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
                     ),
-                d3heatmapOutput('heatmap',width=850,height=1150)),
+                d3heatmapOutput('heatmap',width=550,height=900)),
                 
                 tabPanel(title = 'PCA Plot', value = 'tabpca',
                          fluidRow(
@@ -153,13 +157,13 @@ dashboardPage(
                            column(6,uiOutput("pcslide"))
                          ),br(),
                          fluidRow(
-                           column(6,plotOutput("biplot",width=900,height=850))
+                           column(6,plotOutput("biplot",width=600,height=550))
                 )),
-                tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip"),br(),DT::dataTableOutput('pcaplot_tab')),
+                tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
                 tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
                 
-                tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800),br(), DT::dataTableOutput('eplottab')),
+                tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 500,height = 300),br(), DT::dataTableOutput('eplottab')),
                 
                 
                 #tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),

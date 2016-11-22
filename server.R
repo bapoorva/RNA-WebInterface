@@ -40,10 +40,10 @@ data(go.sets.mm)
 data(go.subs.mm)
 
 #Create a theme for all plots.
-plotTheme <-theme_bw() + theme(axis.title.x = element_text(face="bold", size=16),
-                               axis.text.x  = element_text(angle=0, vjust=0.5, size=14),
-                               axis.title.y = element_text(face="bold", size=16),
-                               axis.text.y  = element_text(angle=0, vjust=0.5, size=14))
+plotTheme <-theme_bw() + theme(axis.title.x = element_text(face="bold", size=9),
+                               axis.text.x  = element_text(angle=35, vjust=0.5, size=9),
+                               axis.title.y = element_text(face="bold", size=9),
+                               axis.text.y  = element_text(angle=0, vjust=0.5, size=9))
 
 
 
@@ -358,12 +358,12 @@ shinyServer(function(input, output,session) {
     
     if(input$boxreorder>0){
     gg=ggplot(e,aes_string(x=me,y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
-      labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
+      labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=2,position=position_jitter(w = 0.1))+
       stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
     }
     else{
       gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
-        labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
+        labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=2,position=position_jitter(w = 0.1))+
         stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
     }#plot data
     gg=ggplotly(gg)
