@@ -475,10 +475,11 @@ shinyServer(function(input, output,session) {
      res.pca = res_pca()
      x=as.numeric(input$pcaxaxes)
      y=as.numeric(input$pcayaxes)
-     validate(
-       need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
-     )
-     fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))
+#      validate(
+#        need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
+#      )
+     if(input$pcslide==0){fviz_pca_ind(res.pca, geom = c("point", "text"))}
+     else{fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))}
    })
    
    output$biplot = renderPlot({
@@ -782,10 +783,20 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-          sym=pval$SYMBOL
+          rownames(expr)=pval$SYMBOL
+          #sym=pval$SYMBOL
+          hmplim=input$hmplim
           #top_expr=data.frame(expr[,-1])
-          top_expr=data.frame(expr)
-          if(input$checkbox==TRUE){
+#           if(hmplim==0)
+#           {
+#             top_expr=data.frame(expr)}
+#           else{
+            top_expr=data.frame(expr)
+            top_expr=top_expr[1:hmplim,]
+            # }
+          
+          sym=rownames(top_expr)
+          if(input$checkbox==FALSE){
             d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
           else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
         }
@@ -1072,11 +1083,15 @@ shinyServer(function(input, output,session) {
   goheatmapup <- function(){
      dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
     hmpcol=input$hmpcol
-    pval=GOHeatup()
-    sym=pval$SYMBOL
-    top_expr=datasetInput3()
+    pval=GOHeatup() #genelist from GO
+    #sym=pval$SYMBOL
+    hmplim=input$hmplim
+    top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
-    if(input$checkbox==TRUE){
+    rownames(top_expr)=pval$SYMBOL
+    top_expr=top_expr[1:hmplim,]
+    sym=rownames(top_expr)
+    if(input$checkbox==FALSE){
       d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
   }
@@ -1159,7 +1174,7 @@ shinyServer(function(input, output,session) {
     sym=expr$SYMBOL
     expr2=data.frame(expr[,-ncol(expr)])
     #rownames(expr2)=expr[,1]
-    if(input$checkbox==TRUE){
+    if(input$checkbox==FALSE){
       d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
     else{d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
   }
@@ -1185,12 +1200,14 @@ shinyServer(function(input, output,session) {
   heatmap <- function(){
     dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
     hmpcol=input$hmpcol #user input-color palette
+    #hmplim=input$hmplim
     expr <- datasetInput3()
     pval <- datasetInput4()
     #get expression values of genes with highest pvals
     top_expr=expr[match(rownames(pval),rownames(expr)),]
+    #top_expr=top_expr[1:hmplim,]
     sym=pval$SYMBOL
-    if(input$checkbox==TRUE){
+    if(input$checkbox==FALSE){
     d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
   }
@@ -1210,6 +1227,32 @@ shinyServer(function(input, output,session) {
   
   output$hmpscale_out = renderPlot({
     hmpscale()
+  })
+  
+  #Set limit for number of genes that can be viewed in the heatmap
+  output$hmplim <- renderUI({
+    #textInput(inputId = 'hmplim', label = "Enter number of genes to view in the heatmap", value = '0')
+#     if(input$hmip == 'genenum'){heatmap()}
+#     else if(input$hmip == 'geneli'){
+#       expr = datasetInput41()
+#       expr2=data.frame(expr[,-ncol(expr)])
+#       mx=nrow(expr2)
+#       }
+    if(input$hmip == 'hmpcam' ){
+      expr <- heatmapcam() 
+      pval=campick2() 
+      rownames(expr)=pval$SYMBOL
+      top_expr=data.frame(expr)
+      mx=nrow(top_expr)
+      sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
+      }
+    else if(input$hmip == 'hmpgo'){
+      pval=GOHeatup()
+      top_expr=datasetInput3()
+      top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+      mx=nrow(top_expr)
+      sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
+      }
   })
   
   #Text title for type of heatmap being displayed in the heatmap tab
@@ -1251,6 +1294,7 @@ shinyServer(function(input, output,session) {
     input$projects
     input$contrast
     input$cameradd
+    input$hmplim
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     isolate({
       if(input$hmip == 'genenum'){heatmap()}

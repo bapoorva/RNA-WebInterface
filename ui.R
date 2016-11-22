@@ -46,7 +46,7 @@ dashboardPage(
                    h4('Generate Heatmap'),
                    fluidRow(
                      column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
-                     column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'YlGnBu' = "YlGnBu",'PRGn'="PRGn", 'Blues' = "Blues")))
+                     column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
                      column(6,selectInput("clusterby", "Cluster By",c('Both'="both",'Row' = "row",'Column' = "column",'None' = "none"))),
@@ -135,9 +135,9 @@ dashboardPage(
                 #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
                 tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
-                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),
+                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),br(),
                     fluidRow(
-                        column(6,h4("")),
+                        column(6,uiOutput('hmplim')),
                         column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
                     ),
                 d3heatmapOutput('heatmap',width=850,height=1150)),
