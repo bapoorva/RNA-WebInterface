@@ -12,8 +12,7 @@ dashboardPage(
   dashboardSidebar(width = 350,
                    div(style="overflow-y: scroll"),
                    tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
-                   fluidRow(
-                     column(6,uiOutput("projects"))),
+                   uiOutput("projects"),
                    fluidRow(
                      column(12,uiOutput("contrasts"))
                    ),
@@ -50,6 +49,7 @@ dashboardPage(
                    h4('Generate Heatmap'),
                    fluidRow(
                      column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
+                     #column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                      column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
@@ -130,7 +130,7 @@ dashboardPage(
                          ),
                          
                          fluidRow(
-                           column(6,plotlyOutput('dotplot',width = 500,height = 300))
+                           column(6,plotOutput('dotplot',width = 1000,height = 500))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
@@ -157,7 +157,7 @@ dashboardPage(
                            column(6,uiOutput("pcslide"))
                          ),br(),
                          fluidRow(
-                           column(6,plotOutput("biplot",width=600,height=550))
+                           column(6,plotOutput("biplot",width=800,height=650))
                 )),
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),

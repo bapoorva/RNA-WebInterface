@@ -40,10 +40,10 @@ data(go.sets.mm)
 data(go.subs.mm)
 
 #Create a theme for all plots.
-plotTheme <-theme_bw() + theme(axis.title.x = element_text(face="bold", size=9),
-                               axis.text.x  = element_text(angle=35, vjust=0.5, size=9),
-                               axis.title.y = element_text(face="bold", size=9),
-                               axis.text.y  = element_text(angle=0, vjust=0.5, size=9))
+plotTheme <-theme_bw() + theme(axis.title.x = element_text(face="bold", size=12),
+                               axis.text.x  = element_text(angle=35, vjust=0.5, size=12),
+                               axis.title.y = element_text(face="bold", size=12),
+                               axis.text.y  = element_text(angle=0, vjust=0.5, size=12))
 
 
 
@@ -358,19 +358,20 @@ shinyServer(function(input, output,session) {
     
     if(input$boxreorder>0){
     gg=ggplot(e,aes_string(x=me,y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
-      labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=2,position=position_jitter(w = 0.1))+
+      labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
       stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
     }
     else{
       gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
-        labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=2,position=position_jitter(w = 0.1))+
+        labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
         stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
     }#plot data
-    gg=ggplotly(gg)
+    #gg=ggplotly(gg)
+    gg
   })
 
   # output dotplot
-  output$dotplot = renderPlotly({
+  output$dotplot = renderPlot({
     dotplot_out()
   })
 
@@ -456,7 +457,7 @@ shinyServer(function(input, output,session) {
    })
    
    output$pcslide <- renderUI({
-     textInput(inputId = 'pcslide', label = "Enter number of genes to view in the biplot", value = '10')
+     textInput(inputId = 'pcslide', label = "Enter number of genes to view in the biplot", value = '0')
      #sliderInput("pcslide", label = h5("Slider: Number of genes to view in the biplot"), min = 2,max = 50, value = 30)
    })
    
@@ -475,10 +476,16 @@ shinyServer(function(input, output,session) {
      res.pca = res_pca()
      x=as.numeric(input$pcaxaxes)
      y=as.numeric(input$pcayaxes)
+     results=fileload()
+     v = results$eset
+     pData<-phenoData(v)
 #      validate(
 #        need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
 #      )
-     if(input$pcslide==0){fviz_pca_ind(res.pca, geom = c("point", "text"))}
+     if(input$pcslide==0){
+       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect)
+     }
+       #fviz_pca_ind(res.pca, geom = c("point", "text"))}
      else{fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))}
    })
    
@@ -796,9 +803,9 @@ shinyServer(function(input, output,session) {
             # }
           
           sym=rownames(top_expr)
-          if(input$checkbox==FALSE){
-            d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
-          else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
+          if(input$checkbox==TRUE){
+            d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
+          else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
         }
 
         # update heatmap tab with the heatmap
@@ -1091,9 +1098,9 @@ shinyServer(function(input, output,session) {
     rownames(top_expr)=pval$SYMBOL
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
-    if(input$checkbox==FALSE){
-      d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
-    else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    if(input$checkbox==TRUE){
+      d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
 
 
@@ -1174,9 +1181,9 @@ shinyServer(function(input, output,session) {
     sym=expr$SYMBOL
     expr2=data.frame(expr[,-ncol(expr)])
     #rownames(expr2)=expr[,1]
-    if(input$checkbox==FALSE){
-      d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
-    else{d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    if(input$checkbox==TRUE){
+      d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
 
   #create heatmap function for top number of genes as chosen from the slider
@@ -1207,16 +1214,16 @@ shinyServer(function(input, output,session) {
     top_expr=expr[match(rownames(pval),rownames(expr)),]
     #top_expr=top_expr[1:hmplim,]
     sym=pval$SYMBOL
-    if(input$checkbox==FALSE){
-    d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
-    else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    if(input$checkbox==TRUE){
+    d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
   
   #manually create scale (colorkey) for heatmap
   
   hmpscale <- reactive({
     hmpcol=input$hmpcol #user input-color palette
-    if(input$checkbox==TRUE){
+    if(input$checkbox==FALSE){
     val=sort(c(-2,-1,0,1,2),decreasing=TRUE)}
     else{
       val=sort(c(-2,-1,0,1,2),decreasing=FALSE)
