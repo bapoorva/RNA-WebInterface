@@ -9,7 +9,7 @@ library(SPIA)
 
 dashboardPage(
   dashboardHeader(title = "RNA-Seq Analysis Web Interface",titleWidth = 350),
-  dashboardSidebar(width = 350,
+  dashboardSidebar(width = 500,
                    div(style="overflow-y: scroll"),
                    tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
                    uiOutput("projects"),
@@ -103,9 +103,10 @@ dashboardPage(
                      column(6,radioButtons(inputId='gage', label = h5("Select ontology"),
                                            choices = c("Biological Process" = 'BP', "Cellular Component" = 'cc', "Molecular Function" = 'MF'),
                                            selected = 1)),
-                     column(6,selectInput("go_dd", "GO Selection",c('Upregulated' = "upreg",'Downregulated' = "downreg"))),
-                     column(6,actionButton(inputId = 'ga', label = 'Select Ontology'))),
-                   downloadButton('downloadgo', 'Download GO Data'),
+                     column(6,selectInput("go_dd", "GO Selection",c('Upregulated' = "upreg",'Downregulated' = "downreg")))),
+                     fluidRow( 
+                     column(6,actionButton(inputId = 'ga', label = 'Display Results')),
+                     column(6,downloadButton('downloadgo', 'Download GO Data'))),
                    br()
   ),
 
@@ -115,37 +116,6 @@ dashboardPage(
     ),
     useShinyjs(),
     tabsetPanel(type="tabs", id = "tabvalue",
-                tabPanel(title = "Project Summary and Results", h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),h4("~~~~Dot Plot of the gene of interest~~~~"),
-                         fluidRow(
-                           column(6,uiOutput("boxplotcol")),
-                           column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
-                         ),
-#                          fluidRow(
-#                            column(6,h4("")),
-#                            column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
-#                          ),
-                         conditionalPanel(
-                           condition = "input.boxreorder ==true",
-                           uiOutput("boxreorder")
-                         ),
-                         
-                         fluidRow(
-                           column(6,plotOutput('dotplot',width = 1000,height = 500))
-                         ),
-                         br(),h4("~~~~Limma data~~~~"),
-                         h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
-                         h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
-                         br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
-                #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
-                tabPanel(title = "MultiContrast-Limma", value = 'tab11',DT::dataTableOutput('table_TRUE')),
-                tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
-                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),br(),
-                    fluidRow(
-                        column(6,uiOutput('hmplim')),
-                        column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
-                    ),
-                d3heatmapOutput('heatmap',width=550,height=900)),
-                
                 tabPanel(title = 'PCA Plot', value = 'tabpca',
                          fluidRow(
                            column(6,uiOutput("pcaxoptions")),
@@ -158,12 +128,46 @@ dashboardPage(
                          ),br(),
                          fluidRow(
                            column(6,plotOutput("biplot",width=800,height=650))
-                )),
+                         )),
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
-                tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
                 
-                tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 500,height = 300),br(), DT::dataTableOutput('eplottab')),
+                tabPanel(title = "Project Summary and Results", 
+                         #h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),
+                         h4("~~~~Dot Plot of the gene of interest~~~~"),
+                         fluidRow(
+                           column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE)),
+                           column(6,uiOutput("boxplotcol"))
+                         ),
+#                          fluidRow(
+#                            column(6,h4("")),
+#                            column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
+#                          ),
+                         conditionalPanel(
+                           condition = "input.boxreorder ==true",
+                           uiOutput("boxreorder")
+                         ),
+                         
+                         fluidRow(
+                           column(6,plotOutput('dotplot',width = "auto"))
+                         ),
+                         br(),h4("~~~~Limma data~~~~"),
+                         h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
+                         h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
+                         br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
+                #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
+                tabPanel(title = "Limma-Multiple Contrasts", value = 'tab11',DT::dataTableOutput('table_TRUE')),
+                tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
+                tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),br(),
+                    fluidRow(
+                        column(6,uiOutput('hmplim')),
+                        column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
+                    ),
+                d3heatmapOutput('heatmap',width=550,height=900)),
+                
+                   tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
+                
+                tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 700,height = 550),br(), DT::dataTableOutput('eplottab')),
                 
                 
                 #tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),

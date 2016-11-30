@@ -483,10 +483,10 @@ shinyServer(function(input, output,session) {
 #        need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
 #      )
      if(input$pcslide==0){
-       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect)
+       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect)+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))
      }
        #fviz_pca_ind(res.pca, geom = c("point", "text"))}
-     else{fviz_pca_biplot(res.pca, label=c("var","ind"),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))}
+     else{fviz_pca_biplot(res.pca,repel=T, label=c("var","ind"),habillage = as.factor(pData$maineffect),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))}
    })
    
    output$biplot = renderPlot({
@@ -532,13 +532,36 @@ shinyServer(function(input, output,session) {
      vars <- apply(pca$x, 2, var)
      props <- round((vars / sum(vars))*100,1)
      groups=factor(gsub('-','_',pData$maineffect))
+#      
+#      pca <- res_pca()
+#      vars <- apply(pca$var$coord, 2, var)
+#      props <- round((vars / sum(vars))*100,1)
+#      groups=factor(gsub('-','_',pData$maineffect))
+#      
      
+      #######
+#      n=as.numeric(input$pcipslide)
+#      validate(
+#        need(input$pcipslide > 199, "Minimum value of input genes that show maximum variance should at least be 200")
+#      )
+#      results=fileload()
+#      v = results$eset
+#      keepGenes <- v@featureData@data
+#      #keepGenes <- v@featureData@data %>% filter(!(seq_name %in% c('X','Y')) & !(is.na(SYMBOL)))
+#      pData<-phenoData(v)
+#      v.filter = v[rownames(v@assayData$exprs) %in% rownames(keepGenes),]
+#      Pvars <- apply(exprs(v.filter),1,var)
+#      select <- order(Pvars, decreasing = TRUE)[seq_len(min(n,length(Pvars)))]
+#      v.var <-v.filter[select,]
+#      m<-exprs(v.var)
+#      rownames(m) <- v.var@featureData@data$ENSEMBL
+#      res.pca = PCA(t(m), graph = FALSE)
+     ########
      try(rgl.close())
      open3d()
-     
      # resize window
      par3d(windowRect = c(100, 100, 612, 612))
-     palette(c('blue','red','green','orange','cyan'))
+     palette(c('blue','red','green','orange','cyan','black','brown','pink'))
      plot3d(pca$x[,1:3], col =as.numeric(groups), type='s',alpha=.75,axes=F,
             xlab=paste('PC1 (',props[1],'%)',sep=''),
             ylab=paste('PC2 (',props[2],'%)',sep=''),
