@@ -127,7 +127,7 @@ dashboardPage(
                            column(6,uiOutput("pcslide"))
                          ),br(),
                          fluidRow(
-                           column(6,plotOutput("biplot",width=800,height=650))
+                           column(6,plotOutput("biplot",width=750,height=600))
                          )),
                 tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
@@ -136,17 +136,13 @@ dashboardPage(
                          #h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),
                          h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
-                           column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE)),
+                           #column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE)),
                            column(6,uiOutput("boxplotcol"))
                          ),
-#                          fluidRow(
-#                            column(6,h4("")),
-#                            column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE))
+#                          conditionalPanel(
+#                            condition = "input.boxreorder ==true",
+#                            uiOutput("boxreorder")
 #                          ),
-                         conditionalPanel(
-                           condition = "input.boxreorder ==true",
-                           uiOutput("boxreorder")
-                         ),
                          
                          fluidRow(
                            column(6,plotOutput('dotplot',width = "auto"))
@@ -164,7 +160,22 @@ dashboardPage(
                         column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
                     ),
                 d3heatmapOutput('heatmap',width=550,height=900)),
-                
+# tabPanel(title = 'PCA Plot', value = 'tabpca',
+#          fluidRow(
+#            column(6,uiOutput("pcaxoptions")),
+#            column(6,uiOutput("pcayoptions"))
+#          ),
+#          br(),textOutput("biplottitle"),br(),
+#          fluidRow(
+#            column(6,uiOutput("pcipslide")),
+#            column(6,uiOutput("pcslide"))
+#          ),br(),
+#          fluidRow(
+#            column(6,plotOutput("biplot",width=800,height=650))
+#          )),
+# tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
+# tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
+
                    tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
                 
                 tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 700,height = 550),br(), DT::dataTableOutput('eplottab')),

@@ -28,7 +28,7 @@ library(rglwidget)
 library(SPIA)
 library(ReactomePA)
 library(limma)
-
+library(ggrepel)
 #load entrez id's for kegg pathway
 data(kegg.sets.mm)
 #load indexes for signaling and metabolic pathways
@@ -328,10 +328,10 @@ shinyServer(function(input, output,session) {
   })
 
   #textbox to enter x-axis variables
-  output$boxreorder <- renderUI({
-    textInput("boxlist", label = h5("Enter x-axis variables in the preferred order"), value = "")
-  })
-  
+#   output$boxreorder <- renderUI({
+#     textInput("boxlist", label = h5("Enter x-axis variables in the preferred order"), value = "")
+#   })
+#   
   dotplot_out = reactive({
     s = input$table_rows_selected #select rows from table
     dt = datasetInput() #load limma data
@@ -351,21 +351,22 @@ shinyServer(function(input, output,session) {
       genesymbol=dt1$SYMBOL} #get the gene symbol of the row selected
     
     #To reorder x-axis, take in input list, split by comma and pass that as a variable to ggplot
-    a=input$boxlist
-    aa=strsplit(a,",")
-    aaa=unlist(aa)
-    me=factor(e$maineffect,levels=c(aaa))
-    
-    if(input$boxreorder>0){
-    gg=ggplot(e,aes_string(x=me,y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
-      labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
-      stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
-    }
-    else{
+#     a=input$boxlist
+#     aa=strsplit(a,",")
+#     aaa=unlist(aa)
+#     me=factor(e$maineffect,levels=c(aaa))
+#     
+#     if(input$boxreorder>0){
+#     gg=ggplot(e,aes_string(x=me,y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
+#       labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
+#       stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
+#     }
+#     else{
       gg=ggplot(e,aes_string(x="maineffect",y="signal",col=input$color))+plotTheme+guides(color=guide_legend(title=as.character(input$color)))+
         labs(title=genesymbol, x="Condition", y="Expression Value") + geom_point(size=5,position=position_jitter(w = 0.1))+
         stat_summary(fun.y = "mean", fun.ymin = "mean", fun.ymax= "mean", size= 0.3, geom = "crossbar",width=.2)
-    }#plot data
+ #   }
+      #plot data
     #gg=ggplotly(gg)
     gg
   })
@@ -479,14 +480,23 @@ shinyServer(function(input, output,session) {
      results=fileload()
      v = results$eset
      pData<-phenoData(v)
-#      validate(
-#        need(input$pcslide > 1, "Minimum value of number of genes to display in the biplot should be 2")
-#      )
+     validate(
+       need(input$pcslide, "Enter number of genes to view in biplot")
+     )
      if(input$pcslide==0){
-       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect)+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))
+       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect,pointsize = 3.35)+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))+theme(axis.title.x = element_text(face="bold", size=14),
+                                                                                                                                                                                             axis.title.y = element_text(face="bold", size=14),
+                                                                                                                                                                                             legend.text  = element_text(angle=0, vjust=0.5, size=14),
+                                                                                                                                                                                             legend.title  = element_text(angle=0, vjust=0.5, size=14),
+                                                                                                                                                                                             plot.title  = element_text(angle=0, vjust=0.5, size=16))
+       
      }
        #fviz_pca_ind(res.pca, geom = c("point", "text"))}
-     else{fviz_pca_biplot(res.pca,repel=T, label=c("var","ind"),habillage = as.factor(pData$maineffect),axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))}
+     else{fviz_pca_biplot(res.pca,repel=T, label=c("var","ind"),habillage = as.factor(pData$maineffect),pointsize = 3.35,axes=c(x,y),select.var = list(contrib = as.numeric(input$pcslide)))+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))+theme(axis.title.x = element_text(face="bold", size=14),
+                                                                                                                                                                                                                                                                            axis.title.y = element_text(face="bold", size=14),
+                                                                                                                                                                                                                                                                            legend.text  = element_text(angle=0, vjust=0.5, size=14),
+                                                                                                                                                                                                                                                                            legend.title  = element_text(angle=0, vjust=0.5, size=14),
+                                                                                                                                                                                                                                                                            plot.title  = element_text(angle=0, vjust=0.5, size=16))}
    })
    
    output$biplot = renderPlot({
@@ -528,41 +538,24 @@ shinyServer(function(input, output,session) {
      pData=pData(results$eset)
      v=t(v)
      v= v[,apply(v, 2, var, na.rm=TRUE) != 0]
-     pca <- prcomp( v, scale= TRUE )
-     vars <- apply(pca$x, 2, var)
-     props <- round((vars / sum(vars))*100,1)
-     groups=factor(gsub('-','_',pData$maineffect))
-#      
-#      pca <- res_pca()
-#      vars <- apply(pca$var$coord, 2, var)
+#      pca <- prcomp( v, scale= TRUE )
+#      vars <- apply(pca$x, 2, var)
 #      props <- round((vars / sum(vars))*100,1)
 #      groups=factor(gsub('-','_',pData$maineffect))
-#      
      
-      #######
-#      n=as.numeric(input$pcipslide)
-#      validate(
-#        need(input$pcipslide > 199, "Minimum value of input genes that show maximum variance should at least be 200")
-#      )
-#      results=fileload()
-#      v = results$eset
-#      keepGenes <- v@featureData@data
-#      #keepGenes <- v@featureData@data %>% filter(!(seq_name %in% c('X','Y')) & !(is.na(SYMBOL)))
-#      pData<-phenoData(v)
-#      v.filter = v[rownames(v@assayData$exprs) %in% rownames(keepGenes),]
-#      Pvars <- apply(exprs(v.filter),1,var)
-#      select <- order(Pvars, decreasing = TRUE)[seq_len(min(n,length(Pvars)))]
-#      v.var <-v.filter[select,]
-#      m<-exprs(v.var)
-#      rownames(m) <- v.var@featureData@data$ENSEMBL
-#      res.pca = PCA(t(m), graph = FALSE)
+     pca <- res_pca()
+     vars <- apply(pca$var$coord, 2, var)
+     props <- round((vars / sum(vars))*100,1)
+     groups=factor(gsub('-','_',pData$maineffect))
+     
+
      ########
      try(rgl.close())
      open3d()
      # resize window
      par3d(windowRect = c(100, 100, 612, 612))
      palette(c('blue','red','green','orange','cyan','black','brown','pink'))
-     plot3d(pca$x[,1:3], col =as.numeric(groups), type='s',alpha=.75,axes=F,
+     plot3d(pca$ind$coord[,1:3], col =as.numeric(groups), type='s',alpha=.75,axes=F,
             xlab=paste('PC1 (',props[1],'%)',sep=''),
             ylab=paste('PC2 (',props[2],'%)',sep=''),
             zlab=paste('PC3 (',props[3],'%)',sep='')
@@ -574,9 +567,9 @@ shinyServer(function(input, output,session) {
      l=length(levels(groups))
      ll=1:l
      y=100+(ll*90)
-     text3d(x=300, y=y, z=1.1,levels(groups) ,col="black")
-     points3d(x=400, y=y, z=1.1, col=as.numeric(as.factor(levels(groups))), size=10)
-     legend3d("topright", legend = levels(groups), pch = 16, col=palette(),cex=1, inset=c(0.02))
+#      text3d(x=300, y=y, z=1.1,levels(groups) ,col="black")
+#      points3d(x=400, y=y, z=1.1, col=as.numeric(as.factor(levels(groups))), size=10)
+      legend3d("topright", legend = levels(groups), pch = 16, col=palette(),cex=1, inset=c(0.02))
      
 #      rgl.snapshot('PCA_3d_test.png', fmt = "png", top = TRUE )
 #      rgl.postscript('PCA_3D_test.pdf',fmt='pdf')
