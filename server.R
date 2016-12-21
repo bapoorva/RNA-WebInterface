@@ -399,7 +399,7 @@ shinyServer(function(input, output,session) {
   res_pca = reactive({
     n=as.numeric(input$pcipslide)
     validate(
-      need(input$pcipslide > 199, "Minimum value of input genes that show maximum variance should at least be 200")
+      need(as.numeric(input$pcipslide) > 199, "Minimum value of input genes that show maximum variance should at least be 200")
     )
     results=fileload()
     v = results$eset
@@ -484,7 +484,7 @@ shinyServer(function(input, output,session) {
        need(input$pcslide, "Enter number of genes to view in biplot")
      )
      if(input$pcslide==0){
-       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect,pointsize = 3.35)+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))+theme(axis.title.x = element_text(face="bold", size=14),
+       fviz_pca_ind(res.pca, repel=T,geom='point',label='var',addEllipses=FALSE, habillage = pData$maineffect,pointsize = 3.35,axes=c(x,y))+scale_shape_manual(values = c(rep(19,length(unique(pData$maineffect)))))+theme(axis.title.x = element_text(face="bold", size=14),
                                                                                                                                                                                              axis.title.y = element_text(face="bold", size=14),
                                                                                                                                                                                              legend.text  = element_text(angle=0, vjust=0.5, size=14),
                                                                                                                                                                                              legend.title  = element_text(angle=0, vjust=0.5, size=14),
@@ -566,9 +566,9 @@ shinyServer(function(input, output,session) {
      grid3d("z")
      l=length(levels(groups))
      ll=1:l
-     y=100+(ll*90)
-#      text3d(x=300, y=y, z=1.1,levels(groups) ,col="black")
-#      points3d(x=400, y=y, z=1.1, col=as.numeric(as.factor(levels(groups))), size=10)
+     y=1+(ll*15)
+     text3d(x=70, y=y, z=0.75,levels(groups) ,col="black")
+     points3d(x=90, y=y, z=0.75, col=as.numeric(as.factor(levels(groups))), size=6)
       legend3d("topright", legend = levels(groups), pch = 16, col=palette(),cex=1, inset=c(0.02))
      
 #      rgl.snapshot('PCA_3d_test.png', fmt = "png", top = TRUE )
@@ -778,7 +778,7 @@ shinyServer(function(input, output,session) {
           id=row$name
           results=fileload()
           contrasts=input$contrast
-          y=paste('results$camera$',contrast,'$',cameradd,'$indices$',id,sep='')
+          y=paste('results$camera$',contrast,'$',cameradd,'$indices$`',id,"`",sep='')
           ind=eval(parse(text =y))
           barcodeplot(stat2,index=ind)
         })
@@ -816,8 +816,24 @@ shinyServer(function(input, output,session) {
 #           else{
             top_expr=data.frame(expr)
             top_expr=top_expr[1:hmplim,]
+            validate(
+              need(nrow(top_expr)>1, "No results")
+            )
             # }
-          
+            
+            if(input$hmpsamp==F){
+              contrast=input$contrast
+              contr=strsplit(contrast,"_vs_")
+              ct1=sapply(contr,"[",1)
+              ct2=sapply(contr,"[",2)
+              results=fileload()
+              pd=pData(results$eset)
+              sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+              sample=as.character(sample)
+              top_expr=top_expr[,eval(sample)]}
+            validate(
+              need(nrow(top_expr)>1, "No results")
+            )
           sym=rownames(top_expr)
           if(input$checkbox==TRUE){
             d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
@@ -1114,6 +1130,9 @@ shinyServer(function(input, output,session) {
     rownames(top_expr)=pval$SYMBOL
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
+    validate(
+      need(nrow(top_expr) >1 , "No results")
+    )
     if(input$checkbox==TRUE){
       d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
@@ -1196,7 +1215,24 @@ shinyServer(function(input, output,session) {
     expr = datasetInput41()
     sym=expr$SYMBOL
     expr2=data.frame(expr[,-ncol(expr)])
+    validate(
+      need(nrow(expr2)>1, "No results")
+    )
+    if(input$hmpsamp==F){
+      contrast=input$contrast
+      contr=strsplit(contrast,"_vs_")
+      ct1=sapply(contr,"[",1)
+      ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      expr2=expr2[,eval(sample)]}
+    
     #rownames(expr2)=expr[,1]
+    validate(
+      need(nrow(expr2)>1, "No results")
+    )
     if(input$checkbox==TRUE){
       d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
@@ -1228,8 +1264,24 @@ shinyServer(function(input, output,session) {
     pval <- datasetInput4()
     #get expression values of genes with highest pvals
     top_expr=expr[match(rownames(pval),rownames(expr)),]
+    validate(
+      need(nrow(top_expr) > 1, "No results")
+    )
+    if(input$hmpsamp==F){
+    contrast=input$contrast
+    contr=strsplit(contrast,"_vs_")
+    ct1=sapply(contr,"[",1)
+    ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      top_expr=top_expr[,eval(sample)]}
     #top_expr=top_expr[1:hmplim,]
     sym=pval$SYMBOL
+    validate(
+      need(nrow(top_expr) > 1, "No results")
+    )
     if(input$checkbox==TRUE){
     d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
@@ -1269,27 +1321,32 @@ shinyServer(function(input, output,session) {
       mx=nrow(top_expr)
       sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
       }
-    else if(input$hmip == 'hmpgo'){
-      pval=GOHeatup()
-      top_expr=datasetInput3()
-      top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
-      mx=nrow(top_expr)
-      sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
-      }
+#     else if(input$hmip == 'hmpgo'){
+#       pval=GOHeatup()
+#       top_expr=datasetInput3()
+#       top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+#       mx=nrow(top_expr)
+#       sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
+#       }
   })
   
+  output$hmpsamp <- renderUI({
+    if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam"){
+      checkboxInput("hmpsamp", label = "View Heatmap of all samples", value = FALSE)
+    }
+  })
   #Text title for type of heatmap being displayed in the heatmap tab
   output$htitle <- renderText({
     hmip=input$hmip
     
     if(input$hmip=="genenum"){text="Heatmap of Top Genes "}
     else if(input$hmip=="geneli"){text="Heatmap of Genelist "}
-    if(input$hmip=="hmpgo"){
-      s2 = input$table4_rows_selected
-      dt2 = datasetInput8() #load GO data
-      dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
-      goid=dt2$GOterm
-      text=paste("Heatmap of GO term:",goid,sep="")}
+#     if(input$hmip=="hmpgo"){
+#       s2 = input$table4_rows_selected
+#       dt2 = datasetInput8() #load GO data
+#       dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
+#       goid=dt2$GOterm
+#       text=paste("Heatmap of GO term:",goid,sep="")}
     if(input$hmip=="hmpcam"){
       s3 = input$tablecam_rows_selected
       dt3 = geneid() 
@@ -1317,13 +1374,14 @@ shinyServer(function(input, output,session) {
     input$projects
     input$contrast
     input$cameradd
+    input$hmpsamp
     input$hmplim
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     isolate({
       if(input$hmip == 'genenum'){heatmap()}
       else if(input$hmip == 'geneli'){heatmap2()}
       else if(input$hmip == 'hmpcam' ){camheatmap()}
-      else if(input$hmip == 'hmpgo'){goheatmapup()}
+      #else if(input$hmip == 'hmpgo'){goheatmapup()}
       })
   })
 
@@ -1344,7 +1402,7 @@ shinyServer(function(input, output,session) {
       if(input$hmip == 'genenum'){saveWidget(heatmap(),file)}
       else if(input$hmip == 'geneli'){saveWidget(heatmap2(),file)}
       else if(input$hmip == 'hmpcam' ){saveWidget(camheatmap(),file)}
-      else if(input$hmip == 'hmpgo'){saveWidget(goheatmapup(),file)}
+      #else if(input$hmip == 'hmpgo'){saveWidget(goheatmapup(),file)}
     })
 
 })

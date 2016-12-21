@@ -8,7 +8,7 @@ library(rglwidget)
 library(SPIA)
 
 dashboardPage(
-  dashboardHeader(title = "RNA-Seq Analysis Web Interface",titleWidth = 350),
+  dashboardHeader(title = "NGS Data Analysis Web Interface",titleWidth = 350),
   dashboardSidebar(width = 500,
                    div(style="overflow-y: scroll"),
                    tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
@@ -48,8 +48,8 @@ dashboardPage(
                    hr(),
                    h4('Generate Heatmap'),
                    fluidRow(
-                     column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
-                     #column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
+                     column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam"))),
+                     #column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
                      column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
@@ -133,7 +133,7 @@ dashboardPage(
                 tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
                 
                 tabPanel(title = "Project Summary and Results", 
-                         #h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),
+                         h4("~~~~Project Description~~~~"),br(),value = 'tab1',textOutput("pdesc"),
                          h4("~~~~Dot Plot of the gene of interest~~~~"),
                          fluidRow(
                            #column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE)),
@@ -158,6 +158,10 @@ dashboardPage(
                     fluidRow(
                         column(6,uiOutput('hmplim')),
                         column(width = 3, offset = 2,plotOutput('hmpscale_out',width = 200,height = 65))
+                    ),
+                    fluidRow(
+                    column(6,uiOutput('hmpsamp')),
+                    column(6,h4(""))
                     ),
                 d3heatmapOutput('heatmap',width=550,height=900)),
 # tabPanel(title = 'PCA Plot', value = 'tabpca',
@@ -187,7 +191,8 @@ dashboardPage(
                 #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),
-                tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
+                tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4')),
+                #tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
                 tabPanel(title = "Help Page", value='tab10', 
                          h4(p(strong("1. Project Summary and Results"))),
                          h4("Select a project and a comparison. (Comparisons are automatically populated in the drop-down menu)"),
