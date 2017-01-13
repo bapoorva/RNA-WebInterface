@@ -307,7 +307,7 @@ shinyServer(function(input, output,session) {
   output$rawdwld <- downloadHandler(
     filename = function() { paste(input$projects, '_rawdata.csv', sep='') },
     content = function(file) {
-      write.csv(datasetInput33(), file)
+      write.csv(datasetInput33(), file,row.names=FALSE)
     })
   
   ###################################################
@@ -376,6 +376,17 @@ shinyServer(function(input, output,session) {
     dotplot_out()
   })
 
+  output$downloaddotplot <- downloadHandler(
+    filename = function() {
+      paste0(input$projects, '_dotplot.jpg', sep='') 
+      #paste0("dotplot.jpg")
+    },
+    content = function(file){
+      jpeg(file, quality = 100, width = 800, height = 800)
+      plot(dotplot_out())
+      dev.off()
+    })
+  
   # update tab1 with dotplot
   observe({
     s = input$table_rows_selected
@@ -503,15 +514,7 @@ shinyServer(function(input, output,session) {
      plotbiplot()
    })
    
-   
-#    output$downloadbiplot <- downloadHandler(
-#      filename = function(){
-#        paste0('biplot', '.html', sep='')
-#      },
-#      content = function(file){
-#        saveWidget(plotbiplot(),file)
-#      })
-   
+
    output$downloadbiplot <- downloadHandler(
      filename = function() {
        paste0("biplot.jpg")
@@ -523,8 +526,15 @@ shinyServer(function(input, output,session) {
      })
    
    observe({
+     #if(input$makepcaplot>0){
+       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabpca')
+     #}
+   })
+   
+   observe({
      if(input$makepcaplot>0){
-       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabpca')}
+     updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabpca')
+     }
    })
    
    ###################################################
@@ -839,7 +849,46 @@ shinyServer(function(input, output,session) {
             d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
           else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
         }
-
+ ####################################################################################################################################################
+        camheatmapalt <- function(){
+          dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
+          expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
+          pval=campick2() #gene list from camera
+          rownames(expr)=pval$SYMBOL
+          #sym=pval$SYMBOL
+          hmplim=input$hmplim
+          #top_expr=data.frame(expr[,-1])
+          #           if(hmplim==0)
+          #           {
+          #             top_expr=data.frame(expr)}
+          #           else{
+          top_expr=data.frame(expr)
+          top_expr=top_expr[1:hmplim,]
+          validate(
+            need(nrow(top_expr)>1, "No results")
+          )
+          # }
+          
+          if(input$hmpsamp==F){
+            contrast=input$contrast
+            contr=strsplit(contrast,"_vs_")
+            ct1=sapply(contr,"[",1)
+            ct2=sapply(contr,"[",2)
+            results=fileload()
+            pd=pData(results$eset)
+            sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+            sample=as.character(sample)
+            top_expr=top_expr[,eval(sample)]}
+          validate(
+            need(nrow(top_expr)>1, "No results")
+          )
+          sym=rownames(top_expr)
+          if(input$checkbox==TRUE){
+            aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
+          else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
+          }
+        
+  ######################################################################################################################################################       
         # update heatmap tab with the heatmap
           observe({
             s = input$tablecam_rows_selected
@@ -1138,7 +1187,24 @@ shinyServer(function(input, output,session) {
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
 
-
+  goheatmapupalt <- function(){
+    dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
+    hmpcol=input$hmpcol
+    pval=GOHeatup() #genelist from GO
+    #sym=pval$SYMBOL
+    hmplim=input$hmplim
+    top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
+    top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+    rownames(top_expr)=pval$SYMBOL
+    top_expr=top_expr[1:hmplim,]
+    sym=rownames(top_expr)
+    validate(
+      need(nrow(top_expr) >1 , "No results")
+    )
+    if(input$checkbox==TRUE){
+      aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=FALSE,Colv = FALSE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=FALSE,Colv = FALSE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
+  }
   # update heatmap tab with heatmap
   observe({
     s = input$table4_rows_selected
@@ -1238,6 +1304,35 @@ shinyServer(function(input, output,session) {
     else{d3heatmap(as.matrix(expr2),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
 
+  heatmap2alt = function(){
+    dist2 = function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
+    hmpcol=input$hmpcol#user input-color palette
+    expr = datasetInput41()
+    sym=expr$SYMBOL
+    expr2=data.frame(expr[,-ncol(expr)])
+    validate(
+      need(nrow(expr2)>1, "No results")
+    )
+    if(input$hmpsamp==F){
+      contrast=input$contrast
+      contr=strsplit(contrast,"_vs_")
+      ct1=sapply(contr,"[",1)
+      ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      expr2=expr2[,eval(sample)]}
+    
+    #rownames(expr2)=expr[,1]
+    validate(
+      need(nrow(expr2)>1, "No results")
+    )
+    if(input$checkbox==TRUE){
+      aheatmap(as.matrix(expr2),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{aheatmap(as.matrix(expr2),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
+  }
+
   #create heatmap function for top number of genes as chosen from the slider
   datasetInput4 <- reactive({
     validate(
@@ -1287,6 +1382,37 @@ shinyServer(function(input, output,session) {
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
   
+  heatmapalt <- function(){
+    dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
+    hmpcol=input$hmpcol #user input-color palette
+    #hmplim=input$hmplim
+    expr <- datasetInput3()
+    pval <- datasetInput4()
+    #get expression values of genes with highest pvals
+    top_expr=expr[match(rownames(pval),rownames(expr)),]
+    validate(
+      need(nrow(top_expr) > 1, "No results")
+    )
+    if(input$hmpsamp==F){
+      contrast=input$contrast
+      contr=strsplit(contrast,"_vs_")
+      ct1=sapply(contr,"[",1)
+      ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      top_expr=top_expr[,eval(sample)]}
+    #top_expr=top_expr[1:hmplim,]
+    sym=pval$SYMBOL
+    validate(
+      need(nrow(top_expr) > 1, "No results")
+    )
+    if(input$checkbox==TRUE){
+      aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv = TRUE,Colv = TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv = TRUE,Colv = TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
+  }
+  
   #manually create scale (colorkey) for heatmap
   
   hmpscale <- reactive({
@@ -1321,13 +1447,13 @@ shinyServer(function(input, output,session) {
       mx=nrow(top_expr)
       sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
       }
-#     else if(input$hmip == 'hmpgo'){
-#       pval=GOHeatup()
-#       top_expr=datasetInput3()
-#       top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
-#       mx=nrow(top_expr)
-#       sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
-#       }
+    else if(input$hmip == 'hmpgo'){
+      pval=GOHeatup()
+      top_expr=datasetInput3()
+      top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+      mx=nrow(top_expr)
+      sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
+      }
   })
   
   output$hmpsamp <- renderUI({
@@ -1341,12 +1467,12 @@ shinyServer(function(input, output,session) {
     
     if(input$hmip=="genenum"){text="Heatmap of Top Genes "}
     else if(input$hmip=="geneli"){text="Heatmap of Genelist "}
-#     if(input$hmip=="hmpgo"){
-#       s2 = input$table4_rows_selected
-#       dt2 = datasetInput8() #load GO data
-#       dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
-#       goid=dt2$GOterm
-#       text=paste("Heatmap of GO term:",goid,sep="")}
+    if(input$hmip=="hmpgo"){
+      s2 = input$table4_rows_selected
+      dt2 = datasetInput8() #load GO data
+      dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
+      goid=dt2$GOterm
+      text=paste("Heatmap of GO term:",goid,sep="")}
     if(input$hmip=="hmpcam"){
       s3 = input$tablecam_rows_selected
       dt3 = geneid() 
@@ -1381,7 +1507,7 @@ shinyServer(function(input, output,session) {
       if(input$hmip == 'genenum'){heatmap()}
       else if(input$hmip == 'geneli'){heatmap2()}
       else if(input$hmip == 'hmpcam' ){camheatmap()}
-      #else if(input$hmip == 'hmpgo'){goheatmapup()}
+      else if(input$hmip == 'hmpgo'){goheatmapup()}
       })
   })
 
@@ -1393,16 +1519,20 @@ shinyServer(function(input, output,session) {
      }
   })
 
+
   #Download heatmap 
   output$downloadheatmap <- downloadHandler(
     filename = function(){
-    paste0('heatmap', '.html', sep='')
+    paste0('heatmap','.jpg',sep='')
       },
     content = function(file){
-      if(input$hmip == 'genenum'){saveWidget(heatmap(),file)}
-      else if(input$hmip == 'geneli'){saveWidget(heatmap2(),file)}
-      else if(input$hmip == 'hmpcam' ){saveWidget(camheatmap(),file)}
-      #else if(input$hmip == 'hmpgo'){saveWidget(goheatmapup(),file)}
+      png(file)
+      jpeg(file, quality = 100, width = 800, height = 1300)
+      if(input$hmip == 'genenum'){heatmapalt()}
+      else if(input$hmip == 'geneli'){heatmap2alt()}
+      else if(input$hmip == 'hmpcam' ){camheatmapalt()}
+      else if(input$hmip == 'hmpgo'){goheatmapupalt()}
+      dev.off()
     })
 
 })

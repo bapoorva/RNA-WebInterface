@@ -43,13 +43,16 @@ dashboardPage(
                      column(6,textInput(inputId = 'lfc', label = "Enter Fold Change cutoff", value = '2')),
                      column(6,textInput(inputId = 'apval', label = "Enter Adjusted P.Value cutoff", value = '0.05'))
                    ),
-                   downloadButton('dwld','Download results table'),
+                    fluidRow(
+                   column(6,downloadButton('dwld','Download results table')),
+                    column(6,downloadButton('downloaddotplot', 'Download Dot plot'))
+                           ),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    hr(),
                    h4('Generate Heatmap'),
                    fluidRow(
-                     column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam"))),
-                     #column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
+                     #column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam"))),
+                     column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
                      column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
@@ -191,8 +194,8 @@ dashboardPage(
                 #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),
-                tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4')),
-                #tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
+                #tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4')),
+                tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
                 tabPanel(title = "Help Page", value='tab10', 
                          h4(p(strong("1. Project Summary and Results"))),
                          h4("Select a project and a comparison. (Comparisons are automatically populated in the drop-down menu)"),
