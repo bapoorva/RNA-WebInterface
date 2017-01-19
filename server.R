@@ -704,7 +704,7 @@ shinyServer(function(input, output,session) {
                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                        ),rownames=TRUE,escape=FALSE,caption="GENE LIST")
+                        ),rownames=FALSE,escape=FALSE,caption="GENE LIST")
         })
         
 #         output$campick3 = DT::renderDataTable({
@@ -806,9 +806,13 @@ shinyServer(function(input, output,session) {
         #extract voom expression data of all genes corresponding to selected row in camera datatable
         heatmapcam <- reactive({
           genesid=campick2()  #gene list from camera
-          voom=datasetInput3() #voom data
+          voom=as.data.frame(datasetInput3())#voom data
+          #voom$ENSEMBL=rownames(voom)
           genes_cam<-voom[rownames(voom) %in% rownames(genesid),]
-
+#           genes_cam=inner_join(voom,genesid,by=c('ENSEMBL'='ENSEMBL'))
+#           rownames(genes_cam)=genes_cam$SYMBOL
+#           genes_cam=genes_cam %>% select(-ENSEMBL:-t)
+#           return(genes_cam)
         })
 
         #create heatmap function
@@ -816,7 +820,19 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-          rownames(expr)=pval$SYMBOL
+          
+#           genesid=campick2()  #gene list from camera
+#           voom=as.data.frame(e)#voom data
+           expr$ENSEMBL=rownames(expr)
+#           pval<-expr[rownames(voom) %in% rownames(genesid),]
+          expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+          rownames(expr)=expr$SYMBOL
+          expr=expr %>% select(-ENSEMBL:-t)
+
+          
+          
+          
+          #rownames(expr)=pval$SYMBOL
           #sym=pval$SYMBOL
           hmplim=input$hmplim
           #top_expr=data.frame(expr[,-1])
