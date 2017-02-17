@@ -262,7 +262,129 @@ shinyServer(function(input, output,session) {
     updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tab11')}
     toggle(condition =input$check,selector = "#tabvalue li a[data-value=tab11]")
   })
-
+  ###################################################
+  ###################################################
+  ############# DISPLAY VOLCANO PLOT  ###############
+  ###################################################
+  ###################################################
+#   datasetInputvol = reactive({
+#     limmadata=datasetInput()
+# #     lfc=as.numeric(input$lfc) #get logFC
+# #     apval=as.numeric(input$apval)#get adjusted P.Vals
+# #     d = limmadata
+#     return(limmadata)
+#   })
+#   
+#   output$volcslider <- renderUI({
+#     conditionalPanel(
+#       condition = "input.volcdrop == 'signi'",
+#       fluidRow(
+#         column(6,sliderInput("volcslider", label = h4("Select top number of genes"), min = 2,max = 25, value = 5))
+#       ))
+#     
+#   })
+#   
+#   output$volcdrop <- renderUI({
+#     selectInput("volcdrop", "Select input type",c('Significant genes' = "signi",'GO genes' = "go"))
+#     
+#   })
+#   
+#   volcanoplot_out = reactive({
+#     diff_df=datasetInput0.5()
+#    
+#     FDR=input$apval
+#     lfc=input$lfc
+#     
+#     if(input$volcdrop=="signi"){
+#     diff_df$group <- "NotSignificant"
+#     # change the grouping for the entries with significance but not a large enough Fold change
+#     diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) < lfc ),"group"] <- "Filtered by FDR"
+#     
+#     # change the grouping for the entries a large enough Fold change but not a low enough p value
+#     diff_df[which(diff_df['adj.P.Val'] > FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Filtered by FC"
+#     
+#     # change the grouping for the entries with both significance and large enough fold change
+#     diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Significant (Filtered by both FDR and FC)"
+#     
+#     # Find and label the top peaks..
+#     n=input$volcslider
+#     top_peaks <- diff_df[with(diff_df, order(adj.P.Val,logFC)),][1:n,]
+#     top_peaks <- rbind(top_peaks, diff_df[with(diff_df, order(adj.P.Val,-logFC)),][1:n,])
+#     
+#     a <- list()
+#     for (i in seq_len(nrow(top_peaks))) {
+#       m <- top_peaks[i, ]
+#       a[[i]] <- list(
+#         x = m[["logFC"]],
+#         y = -log10(m[["adj.P.Val"]]),
+#         text = m[["SYMBOL"]],
+#         xref = "x",
+#         yref = "y",
+#         showarrow = FALSE,
+#         arrowhead = 0.5,
+#         ax = 20,
+#         ay = -40
+#       )
+#     }
+#     }
+#     else if(input$volcdrop=="go"){
+#       top_peaks2=GOHeatup()
+#       diff_df$group <- "All genes"
+#       diff_df[which(diff_df$SYMBOL %in% top_peaks2$SYMBOL ),"group"] <- "Selected_genes"
+#       
+#       # Find and label the top peaks..
+#       top_peaks <- diff_df[diff_df$SYMBOL %in% top_peaks2$SYMBOL,]
+#       
+#       a <- list()
+#       for (i in seq_len(nrow(top_peaks))) {
+#         m <- top_peaks[i, ]
+#         a[[i]] <- list(
+#           x = m[["logFC"]],
+#           y = -log10(m[["adj.P.Val"]]),
+#           text = m[["SYMBOL"]],
+#           xref = "x",
+#           yref = "y",
+#           showarrow = FALSE,
+#           arrowhead = 0.5,
+#           ax = 20,
+#           ay = -40
+#         )
+#       }
+#     }
+#     
+#     
+#     p <- plot_ly(data = diff_df, x = diff_df$logFC, y = -log10(diff_df$adj.P.Val),text = diff_df$SYMBOL, mode = "markers", color = diff_df$group) %>% layout(title ="Volcano Plot",xaxis=list(title="Log Fold Change"),yaxis=list(title="-log10(FDR)")) 
+#       #layout(annotations = a)
+#     p
+#   })
+#   output$table_volc = DT::renderDataTable({
+#   DT::datatable(datasetInputvol(),
+#                   extensions = c('Buttons','Scroller'),
+#                   options = list(dom = 'Bfrtip',
+#                                  searchHighlight = TRUE,
+#                                  pageLength = 10,
+#                                  lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+#                                  scrollX = TRUE,
+#                                  buttons = c('copy', 'print')
+#                   ),rownames=TRUE,selection = list(mode = 'single', selected =1),escape=FALSE)
+#   })
+#   
+#   output$volcanoplot = renderPlotly({
+#     input$radio
+#     input$lfc
+#     input$apval
+#     input$volcslider
+#     input$volcdrop
+#     volcanoplot_out()
+#   })
+#   
+#   observe({
+#     if(input$volcano>0){
+#       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabvolcano')}
+#     toggle(condition =input$volcano,selector = "#tabvalue li a[data-value=tabvolcano]")
+#   })
+#   
+  
   ###################################################
   ###################################################
   ############## DISPLAY VOOM DATA ##################
@@ -284,7 +406,7 @@ shinyServer(function(input, output,session) {
     genes <- inner_join(features,exprsdata,by=c('id'='id'))
     return(genes)
   })
-
+  
   #print voom or expression data file in tab2
  output$table3 = DT::renderDataTable({
     DT::datatable(datasetInput33(),
@@ -707,9 +829,6 @@ shinyServer(function(input, output,session) {
                         ),rownames=FALSE,escape=FALSE,caption="GENE LIST")
         })
         
-#         output$campick3 = DT::renderDataTable({
-#           genesid=campick2()
-#         },rownames= FALSE,caption="GENE LIST")
         
         #download camera datatable
         output$downloadcam <- downloadHandler(
@@ -736,16 +855,6 @@ shinyServer(function(input, output,session) {
 ###################################################
 ###################################################
 
-#         ep_out <- reactive({
-#           results=fileload()
-#           contrasts=input$contrast
-#           res=paste("results$eplot$",contrasts,sep="")
-#           tab=eval(parse(text =res))
-#           validate(
-#             need(nrow(tab) > 1, "No Enriched Pathways found")
-#           )
-#           return(tab)
-#         })
         output$eplottab = DT::renderDataTable({
           input$eplot
           input$camera
@@ -807,12 +916,8 @@ shinyServer(function(input, output,session) {
         heatmapcam <- reactive({
           genesid=campick2()  #gene list from camera
           voom=as.data.frame(datasetInput3())#voom data
-          #voom$ENSEMBL=rownames(voom)
           genes_cam<-voom[rownames(voom) %in% rownames(genesid),]
-#           genes_cam=inner_join(voom,genesid,by=c('ENSEMBL'='ENSEMBL'))
-#           rownames(genes_cam)=genes_cam$SYMBOL
-#           genes_cam=genes_cam %>% select(-ENSEMBL:-t)
-#           return(genes_cam)
+
         })
 
         #create heatmap function
@@ -820,32 +925,17 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-          
-#           genesid=campick2()  #gene list from camera
-#           voom=as.data.frame(e)#voom data
            expr$ENSEMBL=rownames(expr)
-#           pval<-expr[rownames(voom) %in% rownames(genesid),]
           expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
           rownames(expr)=expr$SYMBOL
           expr=expr %>% select(-ENSEMBL:-t)
-
-          
-          
-          
-          #rownames(expr)=pval$SYMBOL
-          #sym=pval$SYMBOL
           hmplim=input$hmplim
-          #top_expr=data.frame(expr[,-1])
-#           if(hmplim==0)
-#           {
-#             top_expr=data.frame(expr)}
-#           else{
             top_expr=data.frame(expr)
             top_expr=top_expr[1:hmplim,]
             validate(
               need(nrow(top_expr)>1, "No results")
             )
-            # }
+
             
             if(input$hmpsamp==F){
               contrast=input$contrast
@@ -870,8 +960,11 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-          rownames(expr)=pval$SYMBOL
-          #sym=pval$SYMBOL
+          expr$ENSEMBL=rownames(expr)
+          #           pval<-expr[rownames(voom) %in% rownames(genesid),]
+          expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+          rownames(expr)=expr$SYMBOL
+          expr=expr %>% select(-ENSEMBL:-t)
           hmplim=input$hmplim
           #top_expr=data.frame(expr[,-1])
           #           if(hmplim==0)
@@ -1046,9 +1139,29 @@ shinyServer(function(input, output,session) {
        {
          gomfsets = go.sets.hs[go.subs.hs$MF]
          go_res = gage(logfc, gsets=gomfsets, same.dir=TRUE)
-       }
-     }
-       else
+       }}
+    else if(organism=="Rat")
+    {
+      data(go.sets.rn) #load GO data from gage
+      data(go.subs.rn)
+      
+      if(input$gage=='BP')
+      {
+        gobpsets = go.sets.rn[go.subs.rn$BP]
+        go_res = gage(logfc, gsets=gobpsets)
+      }
+      else if(input$gage=='cc')
+      {
+        goccsets = go.sets.rn[go.subs.rn$CC]
+        go_res = gage(logfc, gsets=goccsets, same.dir=TRUE)
+      }
+      else if(input$gage=='MF')
+      {
+        gomfsets = go.sets.rn[go.subs.rn$MF]
+        go_res = gage(logfc, gsets=gomfsets, same.dir=TRUE)
+      }
+    }
+       else 
        {
     data(go.sets.mm) #load GO data from gage
     data(go.subs.mm)
@@ -1069,6 +1182,7 @@ shinyServer(function(input, output,session) {
       go_res = gage(logfc, gsets=gomfsets, same.dir=TRUE)
     }
        }
+    
     return(go_res)
   })
 
@@ -1112,7 +1226,7 @@ shinyServer(function(input, output,session) {
                         pageLength = 10,
                         lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                         scrollX = TRUE,
-                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                        buttons = c('copy', 'csv','print')
                       ),rownames=FALSE,escape=FALSE,selection = list(mode = 'single', selected =1))
       })
       })
@@ -1133,7 +1247,7 @@ shinyServer(function(input, output,session) {
   
   ###################################################
   ###################################################
-  ########## GET GENES FROM  GO ###############
+  ############## GET GENES FROM  GO #################
   ###################################################
   ###################################################
   # get GO associated genes
@@ -1147,6 +1261,9 @@ shinyServer(function(input, output,session) {
     goid=dt$GO_id
     if(organism=="human"){
     enterezid=paste("go.sets.hs$`",goid,"`",sep="")
+    }
+    else if(organism=="Rat"){
+      enterezid=paste("go.sets.rn$`",goid,"`",sep="")
     }
     else{
       enterezid=paste("go.sets.mm$`",goid,"`",sep="")
@@ -1187,17 +1304,33 @@ shinyServer(function(input, output,session) {
   goheatmapup <- function(){
      dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
     hmpcol=input$hmpcol
-    pval=GOHeatup() #genelist from GO
-    #sym=pval$SYMBOL
+    pval=GOHeatup()
     hmplim=input$hmplim
     top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
-    rownames(top_expr)=pval$SYMBOL
+    top_expr=as.data.frame(top_expr)
+    top_expr$ENSEMBL=rownames(top_expr)
+     top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+    rownames(top_expr)=top_expr$SYMBOL
+     top_expr=top_expr %>% select(-ENSEMBL:-link)
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
     validate(
       need(nrow(top_expr) >1 , "No results")
     )
+    
+    if(input$hmpsamp==F){
+      contrast=input$contrast
+      contr=strsplit(contrast,"_vs_")
+      ct1=sapply(contr,"[",1)
+      ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      top_expr=top_expr[,eval(sample)]}
+    
+    
     if(input$checkbox==TRUE){
       d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
@@ -1211,15 +1344,29 @@ shinyServer(function(input, output,session) {
     hmplim=input$hmplim
     top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
-    rownames(top_expr)=pval$SYMBOL
+    top_expr=as.data.frame(top_expr)
+    top_expr$ENSEMBL=rownames(top_expr)
+    top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+    rownames(top_expr)=top_expr$SYMBOL
+    top_expr=top_expr %>% select(-ENSEMBL:-link)
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
     validate(
       need(nrow(top_expr) >1 , "No results")
     )
+    if(input$hmpsamp==F){
+      contrast=input$contrast
+      contr=strsplit(contrast,"_vs_")
+      ct1=sapply(contr,"[",1)
+      ct2=sapply(contr,"[",2)
+      results=fileload()
+      pd=pData(results$eset)
+      sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
+      sample=as.character(sample)
+      top_expr=top_expr[,eval(sample)]}
     if(input$checkbox==TRUE){
-      aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=FALSE,Colv = FALSE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
-    else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=FALSE,Colv = FALSE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
+      aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv =TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
+    else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv = TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
   # update heatmap tab with heatmap
   observe({
@@ -1348,7 +1495,24 @@ shinyServer(function(input, output,session) {
       aheatmap(as.matrix(expr2),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{aheatmap(as.matrix(expr2),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}
   }
-
+  
+  output$dropdown <- renderUI({
+    radio=input$radio
+    if(radio=="none"){
+      selectInput("sortby", "Sort By",c('FDR'="sortnone",'Absolute Fold Change' = "sortab",'Positive Fold Change' = "sortpos",'Negative Fold Change' = "sortneg"))
+    }
+    else if(radio=="up"){
+      selectInput("sortby", "Sort By",c('FDR'="sortnone",'Fold Change' = "sortab"))
+    }
+    else if(radio=="down"){
+      selectInput("sortby", "Sort By",c('FDR'="sortnone",'Fold Change' = "sortab"))
+    }
+    else if(radio=="both"){
+      selectInput("sortby", "Sort By",c('FDR'="sortnone",'Absolute Fold Change' = "sortab",'Positive Fold Change' = "sortpos",'Negative Fold Change' = "sortneg"))
+    }
+    
+  })
+  
   #create heatmap function for top number of genes as chosen from the slider
   datasetInput4 <- reactive({
     validate(
@@ -1357,7 +1521,22 @@ shinyServer(function(input, output,session) {
     #sort by pval
     n<-input$gene #number of genes selected by user (input from slider)
     d<-datasetInput()
-    res<-d[order(d$adj.P.Val),]
+    sortby=input$sortby
+    
+    if(sortby=='sortnone'){
+      res<-d[order(d$adj.P.Val),]
+    }
+    else if(sortby=='sortab'){
+      res<-d[order(-abs(d$fc)),]
+    }
+    else if(sortby=='sortpos'){
+      res<-d[order(-d$fc),]
+    }
+    else if(sortby=='sortneg'){
+      res<-d[order(d$fc),]
+    }
+    
+    #res<-d[order(d$adj.P.Val),]
     if(n>nrow(d)){
     reqd_res=res[1:nrow(d),]} #get top n number of genes
     else{
@@ -1473,7 +1652,7 @@ shinyServer(function(input, output,session) {
   })
   
   output$hmpsamp <- renderUI({
-    if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam"){
+    if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam" | input$hmip== "hmpgo"){
       checkboxInput("hmpsamp", label = "View Heatmap of all samples", value = FALSE)
     }
   })
@@ -1518,6 +1697,9 @@ shinyServer(function(input, output,session) {
     input$cameradd
     input$hmpsamp
     input$hmplim
+    input$lfc
+    input$apval
+    input$sortby
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     isolate({
       if(input$hmip == 'genenum'){heatmap()}

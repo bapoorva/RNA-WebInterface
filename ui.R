@@ -36,13 +36,15 @@ dashboardPage(
 #                      ),
                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                   fluidRow(
-                     column(6,radioButtons("radio", label = h4("Gene Selection"),
+                 radioButtons("radio", label = h4("Gene Selection"),
                                            choices = c("None" = 'none',"Upregulated" = 'up', "Downregulated" = 'down', "Both" = 'both'),
-                                           selected = 'none')),
-                     column(6,textInput(inputId = 'lfc', label = "Enter Fold Change cutoff", value = '2')),
-                     column(6,textInput(inputId = 'apval', label = "Enter Adjusted P.Value cutoff", value = '0.05'))
-                   ),
+                                           selected = 'none'),
+                     fluidRow(
+                       column(6,sliderInput("lfc", label = h4("Fold Change"), min = 0.5,max = 6, value = 2)),
+                       column(6,sliderInput("apval", label = h4("P. Value"), min = 0.01,max = 0.2, value =0.05))
+                     ),
+
+                    #checkboxInput("volcano", label = "View volcano plot", value = FALSE),
                     fluidRow(
                    column(6,downloadButton('dwld','Download results table')),
                     column(6,downloadButton('downloaddotplot', 'Download Dot plot'))
@@ -51,8 +53,7 @@ dashboardPage(
                    hr(),
                    h4('Generate Heatmap'),
                    fluidRow(
-                     #column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam"))),
-                     column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
+                    column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
                      column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
@@ -63,7 +64,11 @@ dashboardPage(
 
                    conditionalPanel(
                      condition = "input.hmip == 'genenum'",
-                     sliderInput("gene", label = h3("Slider"), min = 2,max = 300, value = 50)),
+                     fluidRow(
+                       column(6,uiOutput("dropdown")),
+                       #column(6,selectInput("sortby", "Sort By",c('FDR'="sortnone",'Absolute Fold Change' = "sortab",'Positive Fold Change' = "sortpos",'Negative Fold Change' = "sortneg"))),
+                       column(6,sliderInput("gene", label = h4("Top number of genes"), min = 2,max = 500, value = 50))
+                     )),
                    conditionalPanel(
                      condition = "input.hmip == 'geneli'",
                      fluidRow(
@@ -142,10 +147,6 @@ dashboardPage(
                            #column(6,checkboxInput("boxreorder", label = "Reorder x-axis", value = FALSE)),
                            column(6,uiOutput("boxplotcol"))
                          ),
-#                          conditionalPanel(
-#                            condition = "input.boxreorder ==true",
-#                            uiOutput("boxreorder")
-#                          ),
                          
                          fluidRow(
                            column(6,plotOutput('dotplot',width = "auto"))
@@ -154,7 +155,12 @@ dashboardPage(
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
                          h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
                          br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
-                #tabPanel(title="MultiContrast-Limma",uiOutput("plotUI")),
+#                 tabPanel(title = "Volcano Plot", value = 'tabvolcano',
+#                          fluidRow(
+#                            column(6,plotlyOutput("volcanoplot",width=900,height=800)),
+#                            column(width = 3, offset = 2,uiOutput("volcdrop")),
+#                            column(width =4, offset = 2,uiOutput("volcslider"))
+#                            ),br(),DT::dataTableOutput('table_volc')),
                 tabPanel(title = "Limma-Multiple Contrasts", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
                 tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),br(),
@@ -183,15 +189,8 @@ dashboardPage(
 # tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
 # tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
 
-                   tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
-                
+                tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
                 tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 700,height = 550),br(), DT::dataTableOutput('eplottab')),
-                
-                
-                #tabPanel(title = "Enrichment Plot", value = 'eplot', DT::dataTableOutput('eplottab'),br(),textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 1300,height = 800)),
-                
-                
-                #tabPanel(title = 'KEGG Pathway', value = 'tab5', DT::dataTableOutput('kegg'),DT::dataTableOutput('kegggenes')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),
                 #tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4')),
