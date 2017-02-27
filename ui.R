@@ -44,7 +44,7 @@ dashboardPage(
                        column(6,sliderInput("apval", label = h4("P. Value"), min = 0.01,max = 0.2, value =0.05))
                      ),
 
-                    #checkboxInput("volcano", label = "View volcano plot", value = FALSE),
+                    checkboxInput("volcano", label = "View volcano plot", value = FALSE),
                     fluidRow(
                    column(6,downloadButton('dwld','Download results table')),
                     column(6,downloadButton('downloaddotplot', 'Download Dot plot'))
@@ -155,12 +155,12 @@ dashboardPage(
                          h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
                          h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
                          br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
-#                 tabPanel(title = "Volcano Plot", value = 'tabvolcano',
-#                          fluidRow(
-#                            column(6,plotlyOutput("volcanoplot",width=900,height=800)),
-#                            column(width = 3, offset = 2,uiOutput("volcdrop")),
-#                            column(width =4, offset = 2,uiOutput("volcslider"))
-#                            ),br(),DT::dataTableOutput('table_volc')),
+                tabPanel(title = "Volcano Plot", value = 'tabvolcano',
+                         fluidRow(
+                           column(6,plotlyOutput("volcanoplot",width=900,height=800)),
+                           column(width = 3, offset = 2,uiOutput("volcdrop")),
+                           column(width =4, offset = 2,uiOutput("volcslider"))
+                           ),br(),DT::dataTableOutput('table_volc')),
                 tabPanel(title = "Limma-Multiple Contrasts", value = 'tab11',DT::dataTableOutput('table_TRUE')),
                 tabPanel(title = "Raw Data", value = 'tab2',DT::dataTableOutput('table3')),
                 tabPanel(title = 'Heatmap', value = 'tab4',textOutput("htitle"),br(),

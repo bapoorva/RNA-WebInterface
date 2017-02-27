@@ -267,123 +267,128 @@ shinyServer(function(input, output,session) {
   ############# DISPLAY VOLCANO PLOT  ###############
   ###################################################
   ###################################################
-#   datasetInputvol = reactive({
-#     limmadata=datasetInput()
-# #     lfc=as.numeric(input$lfc) #get logFC
-# #     apval=as.numeric(input$apval)#get adjusted P.Vals
-# #     d = limmadata
-#     return(limmadata)
-#   })
-#   
-#   output$volcslider <- renderUI({
-#     conditionalPanel(
-#       condition = "input.volcdrop == 'signi'",
-#       fluidRow(
-#         column(6,sliderInput("volcslider", label = h4("Select top number of genes"), min = 2,max = 25, value = 5))
-#       ))
-#     
-#   })
-#   
-#   output$volcdrop <- renderUI({
-#     selectInput("volcdrop", "Select input type",c('Significant genes' = "signi",'GO genes' = "go"))
-#     
-#   })
-#   
-#   volcanoplot_out = reactive({
-#     diff_df=datasetInput0.5()
-#    
-#     FDR=input$apval
-#     lfc=input$lfc
-#     
-#     if(input$volcdrop=="signi"){
-#     diff_df$group <- "NotSignificant"
-#     # change the grouping for the entries with significance but not a large enough Fold change
-#     diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) < lfc ),"group"] <- "Filtered by FDR"
-#     
-#     # change the grouping for the entries a large enough Fold change but not a low enough p value
-#     diff_df[which(diff_df['adj.P.Val'] > FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Filtered by FC"
-#     
-#     # change the grouping for the entries with both significance and large enough fold change
-#     diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Significant (Filtered by both FDR and FC)"
-#     
-#     # Find and label the top peaks..
-#     n=input$volcslider
-#     top_peaks <- diff_df[with(diff_df, order(adj.P.Val,logFC)),][1:n,]
-#     top_peaks <- rbind(top_peaks, diff_df[with(diff_df, order(adj.P.Val,-logFC)),][1:n,])
-#     
-#     a <- list()
-#     for (i in seq_len(nrow(top_peaks))) {
-#       m <- top_peaks[i, ]
-#       a[[i]] <- list(
-#         x = m[["logFC"]],
-#         y = -log10(m[["adj.P.Val"]]),
-#         text = m[["SYMBOL"]],
-#         xref = "x",
-#         yref = "y",
-#         showarrow = FALSE,
-#         arrowhead = 0.5,
-#         ax = 20,
-#         ay = -40
-#       )
-#     }
-#     }
-#     else if(input$volcdrop=="go"){
-#       top_peaks2=GOHeatup()
-#       diff_df$group <- "All genes"
-#       diff_df[which(diff_df$SYMBOL %in% top_peaks2$SYMBOL ),"group"] <- "Selected_genes"
-#       
-#       # Find and label the top peaks..
-#       top_peaks <- diff_df[diff_df$SYMBOL %in% top_peaks2$SYMBOL,]
-#       
-#       a <- list()
-#       for (i in seq_len(nrow(top_peaks))) {
-#         m <- top_peaks[i, ]
-#         a[[i]] <- list(
-#           x = m[["logFC"]],
-#           y = -log10(m[["adj.P.Val"]]),
-#           text = m[["SYMBOL"]],
-#           xref = "x",
-#           yref = "y",
-#           showarrow = FALSE,
-#           arrowhead = 0.5,
-#           ax = 20,
-#           ay = -40
-#         )
-#       }
-#     }
-#     
-#     
-#     p <- plot_ly(data = diff_df, x = diff_df$logFC, y = -log10(diff_df$adj.P.Val),text = diff_df$SYMBOL, mode = "markers", color = diff_df$group) %>% layout(title ="Volcano Plot",xaxis=list(title="Log Fold Change"),yaxis=list(title="-log10(FDR)")) 
-#       #layout(annotations = a)
-#     p
-#   })
-#   output$table_volc = DT::renderDataTable({
-#   DT::datatable(datasetInputvol(),
-#                   extensions = c('Buttons','Scroller'),
-#                   options = list(dom = 'Bfrtip',
-#                                  searchHighlight = TRUE,
-#                                  pageLength = 10,
-#                                  lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
-#                                  scrollX = TRUE,
-#                                  buttons = c('copy', 'print')
-#                   ),rownames=TRUE,selection = list(mode = 'single', selected =1),escape=FALSE)
-#   })
-#   
-#   output$volcanoplot = renderPlotly({
-#     input$radio
-#     input$lfc
-#     input$apval
-#     input$volcslider
-#     input$volcdrop
-#     volcanoplot_out()
-#   })
-#   
-#   observe({
-#     if(input$volcano>0){
-#       updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabvolcano')}
-#     toggle(condition =input$volcano,selector = "#tabvalue li a[data-value=tabvolcano]")
-#   })
-#   
+  datasetInputvol = reactive({
+    limmadata=datasetInput()
+#     lfc=as.numeric(input$lfc) #get logFC
+#     apval=as.numeric(input$apval)#get adjusted P.Vals
+#     d = limmadata
+    return(limmadata)
+  })
+  
+  output$volcslider <- renderUI({
+    conditionalPanel(
+      condition = "input.volcdrop == 'signi'",
+      fluidRow(
+        column(6,sliderInput("volcslider", label = h4("Select top number of genes"), min = 2,max = 25, value = 5))
+      ))
+    
+  })
+  
+  output$volcdrop <- renderUI({
+    selectInput("volcdrop", "Select input type",c('Significant genes' = "signi",'GO genes' = "go"))
+    
+  })
+  
+  volcanoplot_out = reactive({
+    diff_df=datasetInput0.5()
+   
+    FDR=input$apval
+    lfc=input$lfc
+    
+    if(input$volcdrop=="signi"){
+    diff_df$group <- "NotSignificant"
+    # change the grouping for the entries with significance but not a large enough Fold change
+    diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) < lfc ),"group"] <- "Filtered by FDR"
+    
+    # change the grouping for the entries a large enough Fold change but not a low enough p value
+    diff_df[which(diff_df['adj.P.Val'] > FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Filtered by FC"
+    
+    # change the grouping for the entries with both significance and large enough fold change
+    diff_df[which(diff_df['adj.P.Val'] < FDR & abs(diff_df['logFC']) > lfc ),"group"] <- "Significant (Filtered by both FDR and FC)"
+    
+    # Find and label the top peaks..
+    n=input$volcslider
+    top_peaks <- diff_df[with(diff_df, order(adj.P.Val,logFC)),][1:n,]
+    top_peaks <- rbind(top_peaks, diff_df[with(diff_df, order(adj.P.Val,-logFC)),][1:n,])
+    
+    a <- list()
+    for (i in seq_len(nrow(top_peaks))) {
+      m <- top_peaks[i, ]
+      a[[i]] <- list(
+        x = m[["logFC"]],
+        y = -log10(m[["adj.P.Val"]]),
+        text = m[["SYMBOL"]],
+        xref = "x",
+        yref = "y",
+        showarrow = FALSE,
+        arrowhead = 0.5,
+        ax = 20,
+        ay = -40
+      )
+    }
+    p <- plot_ly(data = diff_df, x = diff_df$logFC, y = -log10(diff_df$adj.P.Val),text = diff_df$SYMBOL, mode = "markers", color = diff_df$group) %>% layout(title ="Volcano Plot",xaxis=list(title="Log Fold Change"),yaxis=list(title="-log10(FDR)")) %>%
+      layout(annotations = a)
+    }
+    else if(input$volcdrop=="go"){
+      top_peaks2=GOHeatup()
+      diff_df$group <- "All genes"
+      diff_df[which(diff_df$SYMBOL %in% top_peaks2$SYMBOL ),"group"] <- "Selected_genes"
+      
+      # Find and label the top peaks..
+      top_peaks <- diff_df[diff_df$SYMBOL %in% top_peaks2$SYMBOL,]
+      
+      a <- list()
+      for (i in seq_len(nrow(top_peaks))) {
+        m <- top_peaks[i, ]
+        a[[i]] <- list(
+          x = m[["logFC"]],
+          y = -log10(m[["adj.P.Val"]]),
+          text = m[["SYMBOL"]],
+          xref = "x",
+          yref = "y",
+          showarrow = FALSE,
+          arrowhead = 0.5,
+          ax = 20,
+          ay = -40
+        )
+      }
+      p <- plot_ly(data = diff_df, x = diff_df$logFC, y = -log10(diff_df$adj.P.Val),text = diff_df$SYMBOL, mode = "markers", color = diff_df$group) %>% layout(title ="Volcano Plot",xaxis=list(title="Log Fold Change"),yaxis=list(title="-log10(FDR)")) 
+
+    }
+    
+    
+    
+    p
+  })
+  output$table_volc = DT::renderDataTable({
+  DT::datatable(datasetInputvol(),
+                  extensions = c('Buttons','Scroller'),
+                  options = list(dom = 'Bfrtip',
+                                 searchHighlight = TRUE,
+                                 pageLength = 10,
+                                 lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
+                                 scrollX = TRUE,
+                                 buttons = c('copy', 'print')
+                  ),rownames=TRUE,selection = list(mode = 'single', selected =1),escape=FALSE)
+  })
+  
+  output$volcanoplot = renderPlotly({
+    withProgress(session = session, message = 'Generating...',detail = 'Please Wait...',{
+    input$radio
+    input$lfc
+    input$apval
+    input$volcslider
+    input$volcdrop
+    volcanoplot_out()
+    })
+  })
+  
+  observe({
+    if(input$volcano>0){
+      updateTabsetPanel(session = session, inputId = 'tabvalue', selected = 'tabvolcano')}
+    toggle(condition =input$volcano,selector = "#tabvalue li a[data-value=tabvolcano]")
+  })
+  
   
   ###################################################
   ###################################################
@@ -1110,7 +1115,7 @@ shinyServer(function(input, output,session) {
     validate(
       need(input$gage, "Please Select Ontology")
     )
-    final_res=datasetInput() #get limma data
+    final_res=datasetInput0.5() #get limma data
     logfc=final_res$fc #get FC values from limma data
     names(logfc)=final_res$ENTREZID # get entrez ids for each row
     results=fileload()
@@ -1269,7 +1274,7 @@ shinyServer(function(input, output,session) {
       enterezid=paste("go.sets.mm$`",goid,"`",sep="")
     }
     entrezid=eval(parse(text=enterezid))
-    limma=datasetInput()
+    limma=datasetInput0.5()
     lim_vals=limma[limma$ENTREZID %in% entrezid,]
   })
 
@@ -1312,7 +1317,7 @@ shinyServer(function(input, output,session) {
     top_expr$ENSEMBL=rownames(top_expr)
      top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
     rownames(top_expr)=top_expr$SYMBOL
-     top_expr=top_expr %>% select(-ENSEMBL:-link)
+     top_expr=top_expr %>% select(-ENSEMBL:-t)
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
     validate(
