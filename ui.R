@@ -112,9 +112,11 @@ dashboardPage(
                                            choices = c("Biological Process" = 'BP', "Cellular Component" = 'cc', "Molecular Function" = 'MF'),
                                            selected = 1)),
                      column(6,selectInput("go_dd", "GO Selection",c('Upregulated' = "upreg",'Downregulated' = "downreg")))),
+                      actionButton(inputId = 'ga', label = 'Display Results'),
+                      br(),br(),
                      fluidRow( 
-                     column(6,actionButton(inputId = 'ga', label = 'Display Results')),
-                     column(6,downloadButton('downloadgo', 'Download GO Data'))),
+                     column(6,downloadButton('downloadgo', 'Download GO Data')),
+                     column(6,downloadButton('downloadgogene', 'Download GO Genelist'))),
                    br()
   ),
 

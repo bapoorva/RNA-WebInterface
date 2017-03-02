@@ -16,6 +16,7 @@ library(png)
 library(GO.db)
 library(d3heatmap)
 library(dplyr)
+library(tidyr)
 library(plotly)
 library(shinyjs)
 library(htmlwidgets)
@@ -774,7 +775,7 @@ shinyServer(function(input, output,session) {
                       pageLength = 10,
                       lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                       scrollX = TRUE,
-                      buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                      buttons = c('copy', 'csv', 'print')
                     ),rownames= FALSE,selection = list(mode = 'single', selected =1),escape=FALSE,caption = "Camera Results")
     })
   })
@@ -830,7 +831,7 @@ shinyServer(function(input, output,session) {
                                        pageLength = 10,
                                        lengthMenu = list(c(30, 50, 100, 150, 200, -1), c('30', '50', '100', '150', '200', 'All')),
                                        scrollX = TRUE,
-                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                                       buttons = c('copy', 'csv', 'print')
                         ),rownames=FALSE,escape=FALSE,caption="GENE LIST")
         })
         
@@ -932,7 +933,8 @@ shinyServer(function(input, output,session) {
           pval=campick2() #gene list from camera
            expr$ENSEMBL=rownames(expr)
           expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-          rownames(expr)=expr$SYMBOL
+          #rownames(expr)=expr$SYMBOL
+          rownames(expr)=make.names(expr$SYMBOL,unique=T)
           expr=expr %>% select(-ENSEMBL:-t)
           hmplim=input$hmplim
             top_expr=data.frame(expr)
@@ -968,7 +970,8 @@ shinyServer(function(input, output,session) {
           expr$ENSEMBL=rownames(expr)
           #           pval<-expr[rownames(voom) %in% rownames(genesid),]
           expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-          rownames(expr)=expr$SYMBOL
+          #rownames(expr)=expr$SYMBOL
+          rownames(expr)=make.names(expr$SYMBOL,unique=T)
           expr=expr %>% select(-ENSEMBL:-t)
           hmplim=input$hmplim
           #top_expr=data.frame(expr[,-1])
@@ -1300,6 +1303,11 @@ shinyServer(function(input, output,session) {
     return(text)
   })
   
+  output$downloadgogene <- downloadHandler(
+    filename = function() { paste('GO_',input$projects,'_',input$contrast,'_',input$gage,'_',input$go_dd,'.csv', sep='') },
+    content = function(file) {
+      write.csv(GOHeatup(), file)
+    })
   ###################################################
   ###################################################
   ########## MAKE HEATMAP WITH GO ###################
@@ -1316,7 +1324,8 @@ shinyServer(function(input, output,session) {
     top_expr=as.data.frame(top_expr)
     top_expr$ENSEMBL=rownames(top_expr)
      top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-    rownames(top_expr)=top_expr$SYMBOL
+    #rownames(top_expr)=top_expr$SYMBOL
+     rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
      top_expr=top_expr %>% select(-ENSEMBL:-t)
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
@@ -1353,6 +1362,7 @@ shinyServer(function(input, output,session) {
     top_expr$ENSEMBL=rownames(top_expr)
     top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
     rownames(top_expr)=top_expr$SYMBOL
+    rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
     top_expr=top_expr %>% select(-ENSEMBL:-link)
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
