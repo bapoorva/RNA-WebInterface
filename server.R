@@ -72,7 +72,7 @@ shinyServer(function(input, output,session) {
   output$projects = renderUI({
     excel=readexcel()
     prj=excel$projects
-      selectInput("projects","Select a project",as.list(as.character(prj)))
+      selectInput("projects","Select a project",as.list(sort(as.character(prj))))
   })
 
   #Load Rdata
@@ -983,6 +983,9 @@ shinyServer(function(input, output,session) {
               need(nrow(top_expr)>1, "No results")
             )
           sym=rownames(top_expr)
+          #Remove rows that have variance 0 (This will avoid the Na/Nan/Inf error in heatmap)
+          ind = apply(top_expr, 1, var) == 0
+          top_expr <- top_expr[!ind,]
           if(input$checkbox==TRUE){
             d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
           else{d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
@@ -1025,6 +1028,9 @@ shinyServer(function(input, output,session) {
             need(nrow(top_expr)>1, "No results")
           )
           sym=rownames(top_expr)
+          #Remove rows that have variance 0 (This will avoid the Na/Nan/Inf error in heatmap)
+          ind = apply(top_expr, 1, var) == 0
+          top_expr <- top_expr[!ind,]
           if(input$checkbox==TRUE){
             aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, input$hmpcol))(30),labRow = sym)}
           else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv=TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, input$hmpcol)))(30),labRow = sym)}
@@ -1149,10 +1155,24 @@ shinyServer(function(input, output,session) {
     results=fileload()
     pd=pData(results$eset)
     organism=pd$organism
+    prjs=c("FalcorFoxA2","mir302","ESC_Laminin","CardiacHdac7_updated","FalcorKO")
+    prj2=c("IPSC_lungepi","Boa_PKM2")
+    if(!input$projects %in% prjs){
+      if(!input$projects %in% prj2){
     validate(
-      need(length(unique(organism))==1,"Please check pData file for errors in organism column. Does it have more than one organism ?")
+      need(length(unique(organism))==1,"Please check pData file for errors in organism column. Does it have more than one organism or is it empty?")
     )
-    organism=pd$organism[1]
+    organism=unique(pd$organism)[1]
+    }}
+    if(input$projects %in% prjs){
+      organism="mouse"
+    }
+    else if(input$projects %in% prj2){
+      organism="human"
+    }
+    
+    #organism=pd$organism[1]
+    
     if(organism=="human")
      {
        data(go.sets.hs) #load GO data from gage
@@ -1291,6 +1311,14 @@ shinyServer(function(input, output,session) {
     results=fileload()
     pd=pData(results$eset)
     organism=pd$organism[1]
+    prjs=c("FalcorFoxA2","mir302","ESC_Laminin","CardiacHdac7_updated","FalcorKO")
+    prj2=c("IPSC_lungepi","Boa_PKM2")
+    if(input$projects %in% prjs){
+      organism="mouse"
+    }
+    else if(input$projects %in% prj2){
+      organism="human"
+    }
     goid=dt$GO_id
     if(organism=="human"){
     enterezid=paste("go.sets.hs$`",goid,"`",sep="")
@@ -1344,8 +1372,8 @@ shinyServer(function(input, output,session) {
     hmpcol=input$hmpcol
     pval=GOHeatup()
     hmplim=input$hmplim
-    top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
-    top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+    top_expr=datasetInput3() 
+    top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]#voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=as.data.frame(top_expr)
     file = readexcel()
     prj=input$projects
@@ -1393,6 +1421,9 @@ shinyServer(function(input, output,session) {
       sample=as.character(sample)
       top_expr=top_expr[,eval(sample)]}
     
+    #Remove rows that have variance 0 (This will avoid the Na/Nan/Inf error in heatmap)
+    ind = apply(top_expr, 1, var) == 0
+    top_expr <- top_expr[!ind,]
     
     if(input$checkbox==TRUE){
       d3heatmap(as.matrix(top_expr),distfun=dist2,scale="row",dendrogram=input$clusterby,xaxis_font_size = 10,colors = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
@@ -1428,6 +1459,9 @@ shinyServer(function(input, output,session) {
       sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
       sample=as.character(sample)
       top_expr=top_expr[,eval(sample)]}
+    #Remove rows that have variance 0 (This will avoid the Na/Nan/Inf error in heatmap)
+    ind = apply(top_expr, 1, var) == 0
+    top_expr <- top_expr[!ind,]
     if(input$checkbox==TRUE){
       aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv =TRUE,fontsize = 10,color = colorRampPalette(brewer.pal(n = 9, hmpcol))(30),labRow = sym)}
     else{aheatmap(as.matrix(top_expr),distfun=dist2,scale="row",Rowv=TRUE,Colv = TRUE,fontsize = 10,color = colorRampPalette(rev(brewer.pal(n = 9, hmpcol)))(30),labRow = sym)}

@@ -161,7 +161,7 @@ dashboardPage(
                          br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
                 tabPanel(title = "Volcano Plot", value = 'tabvolcano',
                          fluidRow(
-                           column(6,plotlyOutput("volcanoplot",width=900,height=800)),
+                           column(6,plotlyOutput("volcanoplot",width=800,height=700)),
                            column(width = 3, offset = 2,uiOutput("volcdrop")),
                            column(width =4, offset = 2,uiOutput("volcslider"))
                            ),br(),DT::dataTableOutput('table_volc')),
