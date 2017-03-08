@@ -1155,8 +1155,8 @@ shinyServer(function(input, output,session) {
     results=fileload()
     pd=pData(results$eset)
     organism=pd$organism
-    prjs=c("FalcorFoxA2","mir302","ESC_Laminin","CardiacHdac7_updated","FalcorKO")
-    prj2=c("IPSC_lungepi","Boa_PKM2")
+    prjs=c("DS_FalcorFoxA2","YT_mir302","RJ_ESC_Laminin","RJ_CardiacHdac7_updated","DS_FalcorKO")
+    prj2=c("DK_IPSC_lungepi","ZA_Boa_PKM2")
     if(!input$projects %in% prjs){
       if(!input$projects %in% prj2){
     validate(
@@ -1311,8 +1311,8 @@ shinyServer(function(input, output,session) {
     results=fileload()
     pd=pData(results$eset)
     organism=pd$organism[1]
-    prjs=c("FalcorFoxA2","mir302","ESC_Laminin","CardiacHdac7_updated","FalcorKO")
-    prj2=c("IPSC_lungepi","Boa_PKM2")
+    prjs=c("DS_FalcorFoxA2","YT_mir302","RJ_ESC_Laminin","RJ_CardiacHdac7_updated","DS_FalcorKO")
+    prj2=c("DK_IPSC_lungepi","ZA_Boa_PKM2")
     if(input$projects %in% prjs){
       organism="mouse"
     }
@@ -1330,7 +1330,7 @@ shinyServer(function(input, output,session) {
       enterezid=paste("go.sets.mm$`",goid,"`",sep="")
     }
     entrezid=eval(parse(text=enterezid))
-    limma=datasetInput()
+    limma=datasetInput0.5()
     lim_vals=limma[limma$ENTREZID %in% entrezid,]
   })
 
@@ -1382,7 +1382,7 @@ shinyServer(function(input, output,session) {
     seq=file$seq[file$projects %in% prj]
     seq=as.character(seq)
     if(seq=="R"){
-    top_expr$ENSEMBL=rownames(top_expr)
+     top_expr$ENSEMBL=rownames(top_expr)
      top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
     #rownames(top_expr)=top_expr$SYMBOL
      rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
@@ -1507,7 +1507,7 @@ shinyServer(function(input, output,session) {
 #     genelist=sapply(p,"[") #get array of strings with gene id's
 
     #load limma and voom data
-    limma=datasetInput0.5()
+    limma=datasetInput()
     voom=datasetInput3()
     #get expression values of the genes in the gene list
         # user-defined identifier for the gene list
@@ -1869,15 +1869,15 @@ shinyServer(function(input, output,session) {
     input$ga
     input$table4_rows_selected
     input$tablecam_rows_selected
-    input$radio
+    #input$radio
     input$projects
     input$contrast
     input$cameradd
     input$hmpsamp2
     input$hmplimcam
-    input$lfc
-    input$apval
-    input$sortby
+    #input$lfc
+    #input$apval
+    #input$sortby
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     #isolate({
       camheatmap()
@@ -1897,15 +1897,15 @@ shinyServer(function(input, output,session) {
     input$ga
     input$table4_rows_selected
     input$tablecam_rows_selected
-    input$radio
+    #input$radio
     input$projects
     input$contrast
     input$cameradd
     input$hmpsamp3
     input$hmplimgo
-    input$lfc
-    input$apval
-    input$sortby
+    #input$lfc
+    #input$apval
+    #input$sortby
     #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
     #isolate({
       goheatmapup()

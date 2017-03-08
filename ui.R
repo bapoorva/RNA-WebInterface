@@ -11,7 +11,7 @@ dashboardPage(
   dashboardHeader(title = "NGS Data Analysis Web Interface",titleWidth = 350),
   dashboardSidebar(width = 500,
                    div(style="overflow-y: scroll"),
-                   tags$head(tags$style(HTML(".sidebar { height: 120vh; overflow-y: auto; }" ))),
+                   tags$head(tags$style(HTML(".sidebar { height: 170vh; overflow-y: auto; }" ))),
                    uiOutput("projects"),
                    fluidRow(
                      column(12,uiOutput("contrasts"))
