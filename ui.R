@@ -53,8 +53,10 @@ dashboardPage(
                    hr(),
                    h4('Generate Heatmap'),
                    fluidRow(
-                    column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
-                     column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
+                    #column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli",'Heatmap from Camera' = "hmpcam",'Heatmap from GO' = "hmpgo"))),
+                    column(6,selectInput("hmip", "Select Heatmap input type",c('Top number of genes' = "genenum",'Enter Genelist' = "geneli"))),
+                    
+                    column(6,selectInput("hmpcol", "Select Heatmap Color Palette",c('YlGnBu' = "YlGnBu",'RdBu' = "RdBu",'YlOrRd' = "YlOrRd",'PRGn'="PRGn", 'Blues' = "Blues")))
                    ),
                    fluidRow(
                      column(6,selectInput("clusterby", "Cluster By",c('Both'="both",'Row' = "row",'Column' = "column",'None' = "none"))),
@@ -73,7 +75,7 @@ dashboardPage(
                      condition = "input.hmip == 'geneli'",
                      fluidRow(
                        column(6,selectInput(inputId = 'selectidentifier',label='Select Identifier',choices=list('Ensembl ID'='ensembl','Entrez Id'='entrez','Gene Symbol'='genesym'))),
-                       column(6,textInput("genelist", label = h5("Enter Gene List to plot"), value = ""))
+                       column(6,fileInput('genelistfile', 'Upload Text File',accept=c('text/csv','text/comma-separated-values,text/plain','.txt')))
                      )),
                    fluidRow(
                      column(6,actionButton(inputId = 'makeheat', label = 'Create Heatmap')),
@@ -191,12 +193,32 @@ dashboardPage(
 # tabPanel(title = 'Variances of PC', value = 'tabvar',h4(strong("Variances of the principal components")),textOutput("pcatitle"),plotOutput("pcaplot_ip",width=700,height=400),br(),DT::dataTableOutput('pcaplot_tab')),
 # tabPanel(title = '3D PCA Plot', value = '3dpca',h4("3D plot"),br(),br(),rglwidgetOutput("pcaplot3d",width = "850px", height = "750px")),
 
-                tabPanel(title = "GSEA", value = 'gsea', DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
+                tabPanel(title = "GSEA", value = 'gsea', 
+                         fluidRow(
+                           column(6,uiOutput('hmplimcam')),
+                           column(width = 3, offset = 2,plotOutput('hmpscale_out2',width = 200,height = 65))
+                         ),
+                         fluidRow(
+                           column(6,uiOutput('hmpsamp2')),
+                           column(6,h4(""))
+                         ),
+                         d3heatmapOutput('camheatmap',width=550,height=900),
+                         DT::dataTableOutput('tablecam'),textOutput("camdesc"),DT::dataTableOutput('campick3')),
                 tabPanel(title = "Enrichment Plot", value = 'eplot',textOutput("eplotdesc"),br(),plotOutput('en_plot',width = 700,height = 550),br(), DT::dataTableOutput('eplottab')),
                 tabPanel(title = 'Pathway Analysis using SPIA', value = 'spia', DT::dataTableOutput('spiaop'),textOutput("spiadesc"),DT::dataTableOutput('spiagenes')),
                 #tabPanel(title = 'Pathway Plot', value = 'tab5',uiOutput("plots")),
                 #tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4')),
-                tabPanel(title = "Gene Ontology", value = 'tab6',DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
+                tabPanel(title = "Gene Ontology", value = 'tab6',
+                         fluidRow(
+                           column(6,uiOutput('hmplimgo')),
+                           column(width = 3, offset = 2,plotOutput('hmpscale_out3',width = 200,height = 65))
+                         ),
+                         fluidRow(
+                           column(6,uiOutput('hmpsamp3')),
+                           column(6,h4(""))
+                         ),
+                         d3heatmapOutput('goheatmap',width=550,height=900),
+                         DT::dataTableOutput('table4'),textOutput("godesc"),DT::dataTableOutput('x4')),
                 tabPanel(title = "Help Page", value='tab10', 
                          h4(p(strong("1. Project Summary and Results"))),
                          h4("Select a project and a comparison. (Comparisons are automatically populated in the drop-down menu)"),

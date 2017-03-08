@@ -1,7 +1,7 @@
 library(shiny)
 #library(pathview)
-library("AnnotationDbi")
-library("org.Mm.eg.db")
+# library("AnnotationDbi")
+# library("org.Mm.eg.db")
 library(gage)
 library(gageData)
 library(RColorBrewer)
@@ -30,6 +30,8 @@ library(SPIA)
 library(ReactomePA)
 library(limma)
 library(ggrepel)
+library(readxl)
+library(biomaRt)
 #load entrez id's for kegg pathway
 data(kegg.sets.mm)
 #load indexes for signaling and metabolic pathways
@@ -99,7 +101,7 @@ shinyServer(function(input, output,session) {
   prjdesc = reactive({
     file = readexcel()
     prj=input$projects
-    desc=file[file$projects %in% prj,-1]
+    desc=file$desc[file$projects %in% prj]
     desc=as.character(desc)
   })
 
@@ -931,13 +933,36 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-           expr$ENSEMBL=rownames(expr)
-          expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-          #rownames(expr)=expr$SYMBOL
-          rownames(expr)=make.names(expr$SYMBOL,unique=T)
-          expr=expr %>% select(-ENSEMBL:-t)
+          file = readexcel()
+          prj=input$projects
+          old=file$old[file$projects %in% prj]
+          old=as.character(old)
+          seq=file$seq[file$projects %in% prj]
+          seq=as.character(seq)
+          if(seq=="R"){
+            expr$ENSEMBL=rownames(expr)
+            expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+            rownames(expr)=make.names(expr$SYMBOL,unique=T)
+            if(old=="N"){
+              expr=expr %>% select(-ENSEMBL:-t)}
+            else if(old=="Y"){
+              expr=expr %>% select(-ENSEMBL:-adj.P.Val)
+            }
+          }
+          else if(seq=="M"){
+            expr$id=rownames(expr)
+            pval$id=rownames(pval)
+            expr=inner_join(expr,pval,by=c('id'='id'))
+            rownames(expr)=make.names(expr$SYMBOL,unique=T)
+          if(old=="N"){
+            expr=expr %>% select(-ENSEMBL:-t)
+          }
+          else if(old=="Y"){
+          expr=expr %>% select(-ENSEMBL:-adj.P.Val)
+          }
+          }
           hmplim=input$hmplim
-            top_expr=data.frame(expr)
+            top_expr=as.data.frame(expr)
             top_expr=top_expr[1:hmplim,]
             validate(
               need(nrow(top_expr)>1, "No results")
@@ -1277,7 +1302,7 @@ shinyServer(function(input, output,session) {
       enterezid=paste("go.sets.mm$`",goid,"`",sep="")
     }
     entrezid=eval(parse(text=enterezid))
-    limma=datasetInput0.5()
+    limma=datasetInput()
     lim_vals=limma[limma$ENTREZID %in% entrezid,]
   })
 
@@ -1322,13 +1347,37 @@ shinyServer(function(input, output,session) {
     top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
     top_expr=as.data.frame(top_expr)
+    file = readexcel()
+    prj=input$projects
+    old=file$old[file$projects %in% prj]
+    old=as.character(old)
+    seq=file$seq[file$projects %in% prj]
+    seq=as.character(seq)
+    if(seq=="R"){
     top_expr$ENSEMBL=rownames(top_expr)
      top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
     #rownames(top_expr)=top_expr$SYMBOL
      rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
-     top_expr=top_expr %>% select(-ENSEMBL:-t)
-    top_expr=top_expr[1:hmplim,]
-    sym=rownames(top_expr)
+     if(old=="N"){
+     top_expr=top_expr %>% select(-ENSEMBL:-t)}
+     else if(old=="Y"){
+       top_expr=top_expr %>% select(-ENSEMBL:-adj.P.Val)
+     }
+    }
+    else if(seq=="M"){
+      top_expr$id=rownames(top_expr)
+      pval$id=rownames(pval)
+      top_expr=inner_join(top_expr,pval,by=c('id'='id'))
+      rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
+      if(old=="N"){
+        top_expr=top_expr %>% select(-ENSEMBL:-t)
+      }
+      else if(old=="Y"){
+        top_expr=top_expr %>% select(-ENSEMBL:-adj.P.Val)
+      }
+    }
+     top_expr=top_expr[1:hmplim,]
+     sym=rownames(top_expr)
     validate(
       need(nrow(top_expr) >1 , "No results")
     )
@@ -1400,55 +1449,85 @@ shinyServer(function(input, output,session) {
 
   # Get gene list from user
   datasetInput41 = reactive({
-    validate(
-      need(input$genelist, "Please input Genelist")
-    )
-    genes=input$genelist #get complete gene list as string
-    p=strsplit(genes,",") #split string by ','
-    genelist=sapply(p,"[") #get array of strings with gene id's
+#     validate(
+#       need(input$genelist, "Please input Genelist")
+#     )
+    file=input$genelistfile
+    genes=read.table(file$datapath) #get complete gene list as string
+    df=as.vector(genes$V1)
+    results=fileload()
+    pd=pData(results$eset)
+    org=unique(pd$organism)
+    
+    if(org=="human"){
+      dataset="hsapiens_gene_ensembl"
+      }
+    else if(org=="Rat"){
+      dataset="rnorvegicus_gene_ensembl"
+    }
+    else{
+      dataset="mmusculus_gene_ensembl"
+    }
+    ensembl = useEnsembl(biomart="ensembl", dataset=dataset)
+#     p=strsplit(genes,",") #split string by ','
+#     genelist=sapply(p,"[") #get array of strings with gene id's
 
     #load limma and voom data
-    limma=datasetInput()
+    limma=datasetInput0.5()
     voom=datasetInput3()
     #get expression values of the genes in the gene list
         # user-defined identifier for the gene list
     if(input$selectidentifier=='ensembl')
     {
-      #expr_vals=voom[rownames(voom) %in% genelist,]
-      sym=limma[limma$ENSEMBL %in% genelist,] %>% select(ENSEMBL,SYMBOL)
-      #sym=sym[,c("ENSEMBL","SYMBOL")]
-      expr_vals=merge(voom,sym,by="row.names")
-      rownames(expr_vals)=expr_vals$Row.names
-      expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
+      #ensembl = useEnsembl(biomart="ensembl", dataset="mmusculus_gene_ensembl")
+      genes <- getBM(attributes=c('ensembl_gene_id','external_gene_name'), filters ='ensembl_gene_id', values =df, mart = ensembl)
+      genelist=genes$ensembl_gene_id
+      
     }
     else if(input$selectidentifier=='entrez')
     {
-      limma$id<-rownames(limma)
-      ensembleid=limma$id[limma$ENTREZID %in% genelist]
-      sym=limma[limma$ENTREZID %in% genelist,]
-      sym=sym[,c("ENSEMBL","SYMBOL")]
-      expr_vals=voom[rownames(voom) %in% ensembleid,]
-      expr_vals=merge(expr_vals,sym,by="row.names")
-      rownames(expr_vals)=expr_vals$Row.names
-      expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
+      #ensembl = useEnsembl(biomart="ensembl", dataset="mmusculus_gene_ensembl")
+      genes <- getBM(attributes=c('ensembl_gene_id','entrezgene'), filters ='entrezgene', values =df, mart = ensembl)
+      genelist=genes$ensembl_gene_id
+      
+      
+#       limma$id<-rownames(limma)
+#       ensembleid=limma$id[limma$ENTREZID %in% genelist]
+#       sym=limma[limma$ENTREZID %in% genelist,]
+#       sym=sym[,c("ENSEMBL","SYMBOL")]
+#       expr_vals=voom[rownames(voom) %in% ensembleid,]
+#       expr_vals=merge(expr_vals,sym,by="row.names")
+#       rownames(expr_vals)=expr_vals$Row.names
+#       expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
     }
     else if(input$selectidentifier=='genesym')
     {
-      limma$id<-rownames(limma)
-      ensembleid=limma$id[limma$SYMBOL %in% genelist]
-      sym=limma[limma$SYMBOL %in% genelist,]
-      sym=sym[,c("ENSEMBL","SYMBOL")]
-      expr_vals=voom[rownames(voom) %in% ensembleid,]
-      expr_vals=merge(expr_vals,sym,by="row.names")
-      rownames(expr_vals)=expr_vals$Row.names
-      expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
+      #ensembl = useEnsembl(biomart="ensembl", dataset="mmusculus_gene_ensembl")
+      genes <- getBM(attributes=c('ensembl_gene_id','external_gene_name'), filters ='external_gene_name', values =df, mart = ensembl)
+      genelist=genes$ensembl_gene_id
+      
+#       limma$id<-rownames(limma)
+#       ensembleid=limma$id[limma$SYMBOL %in% genelist]
+#       sym=limma[limma$SYMBOL %in% genelist,]
+#       sym=sym[,c("ENSEMBL","SYMBOL")]
+#       expr_vals=voom[rownames(voom) %in% ensembleid,]
+#       expr_vals=merge(expr_vals,sym,by="row.names")
+#       rownames(expr_vals)=expr_vals$Row.names
+#       expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
     }
+    
+    sym=limma[limma$ENSEMBL %in% genelist,] %>% select(ENSEMBL,SYMBOL)
+    #sym=sym[,c("ENSEMBL","SYMBOL")]
+    expr_vals=merge(voom,sym,by="row.names")
+    rownames(expr_vals)=expr_vals$Row.names
+    expr_vals=data.frame(expr_vals[,-c(1,(ncol(expr_vals)-1))])
+    
     validate(
       need(nrow(expr_vals) > 1, "Please Check Identifier chosen or Select genelist from Raw Expression Data tab")
     )
-    validate(
-      need(nrow(expr_vals)== nrow(genelist), "One or more of the genes entered does not exist. Check list for typos and verify using Raw Expression Data tab")
-    )
+#     validate(
+#       need(nrow(expr_vals)== nrow(genelist), "One or more of the genes entered does not exist. Check list for typos and verify using Raw Expression Data tab")
+#     )
     return(expr_vals)
   })
 
@@ -1469,6 +1548,10 @@ shinyServer(function(input, output,session) {
       ct2=sapply(contr,"[",2)
       results=fileload()
       pd=pData(results$eset)
+      if(input$projects =="MoGene2_Dave"){
+       ct1="Hopx"
+       ct2="SPC"
+      }
       sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
       sample=as.character(sample)
       expr2=expr2[,eval(sample)]}
@@ -1577,6 +1660,10 @@ shinyServer(function(input, output,session) {
     contr=strsplit(contrast,"_vs_")
     ct1=sapply(contr,"[",1)
     ct2=sapply(contr,"[",2)
+    if(input$projects =="MoGene2_Dave"){
+      ct1="Hopx"
+      ct2="SPC"
+    }
       results=fileload()
       pd=pData(results$eset)
       sample=pd$sample_name[pd$maineffect %in% c(ct1,ct2)]
@@ -1640,36 +1727,47 @@ shinyServer(function(input, output,session) {
     hmpscale()
   })
   
+  output$hmpscale_out2 = renderPlot({
+    hmpscale()
+  })
+  output$hmpscale_out3 = renderPlot({
+    hmpscale()
+  })
   #Set limit for number of genes that can be viewed in the heatmap
-  output$hmplim <- renderUI({
-    #textInput(inputId = 'hmplim', label = "Enter number of genes to view in the heatmap", value = '0')
-#     if(input$hmip == 'genenum'){heatmap()}
-#     else if(input$hmip == 'geneli'){
-#       expr = datasetInput41()
-#       expr2=data.frame(expr[,-ncol(expr)])
-#       mx=nrow(expr2)
-#       }
-    if(input$hmip == 'hmpcam' ){
-      expr <- heatmapcam() 
+  output$hmplimcam <- renderUI({
+      #expr <- heatmapcam() 
       pval=campick2() 
-      rownames(expr)=pval$SYMBOL
-      top_expr=data.frame(expr)
-      mx=nrow(top_expr)
-      sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
-      }
-    else if(input$hmip == 'hmpgo'){
-      pval=GOHeatup()
+#       rownames(expr)=pval$SYMBOL
+#       top_expr=as.data.frame(expr)
       top_expr=datasetInput3()
       top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
       mx=nrow(top_expr)
       sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
-      }
+  })
+  
+  #Set limit for number of genes that can be viewed in the heatmap
+  output$hmplimgo <- renderUI({
+          pval=GOHeatup()
+          top_expr=datasetInput3()
+          top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+          mx=nrow(top_expr)
+          sliderInput("hmplim", label = h5("Select number of genes to view in the heatmap"), min = 2,max =mx, value = mx)
   })
   
   output$hmpsamp <- renderUI({
-    if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam" | input$hmip== "hmpgo"){
+    #if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam" | input$hmip== "hmpgo"){
       checkboxInput("hmpsamp", label = "View Heatmap of all samples", value = FALSE)
-    }
+    #}
+  })
+  output$hmpsamp2 <- renderUI({
+    #if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam" | input$hmip== "hmpgo"){
+    checkboxInput("hmpsamp", label = "View Heatmap of all samples", value = FALSE)
+    #}
+  })
+  output$hmpsamp3 <- renderUI({
+    #if(input$hmip == 'genenum' |input$hmip == 'geneli' | input$hmip== "hmpcam" | input$hmip== "hmpgo"){
+    checkboxInput("hmpsamp", label = "View Heatmap of all samples", value = FALSE)
+    #}
   })
   #Text title for type of heatmap being displayed in the heatmap tab
   output$htitle <- renderText({
@@ -1677,19 +1775,19 @@ shinyServer(function(input, output,session) {
     
     if(input$hmip=="genenum"){text="Heatmap of Top Genes "}
     else if(input$hmip=="geneli"){text="Heatmap of Genelist "}
-    if(input$hmip=="hmpgo"){
-      s2 = input$table4_rows_selected
-      dt2 = datasetInput8() #load GO data
-      dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
-      goid=dt2$GOterm
-      text=paste("Heatmap of GO term:",goid,sep="")}
-    if(input$hmip=="hmpcam"){
-      s3 = input$tablecam_rows_selected
-      dt3 = geneid() 
-      dt3 = dt3[s3, , drop=FALSE] 
-      camname=dt3$name
-      text=paste("Heatmap of camera term :",camname,sep="")}
-    return(text)
+#     if(input$hmip=="hmpgo"){
+#       s2 = input$table4_rows_selected
+#       dt2 = datasetInput8() #load GO data
+#       dt2 = dt2[s2, , drop=FALSE] #get GO data corresponding to selected row in table
+#       goid=dt2$GOterm
+#       text=paste("Heatmap of GO term:",goid,sep="")}
+#     if(input$hmip=="hmpcam"){
+#       s3 = input$tablecam_rows_selected
+#       dt3 = geneid() 
+#       dt3 = dt3[s3, , drop=FALSE] 
+#       camname=dt3$name
+#       text=paste("Heatmap of camera term :",camname,sep="")}
+#     return(text)
   })
 
   # make heatmap for genes
@@ -1719,11 +1817,68 @@ shinyServer(function(input, output,session) {
     isolate({
       if(input$hmip == 'genenum'){heatmap()}
       else if(input$hmip == 'geneli'){heatmap2()}
-      else if(input$hmip == 'hmpcam' ){camheatmap()}
-      else if(input$hmip == 'hmpgo'){goheatmapup()}
+      #else if(input$hmip == 'hmpcam' ){camheatmap()}
+      #else if(input$hmip == 'hmpgo'){goheatmapup()}
       })
   })
-
+  
+  # make heatmap for genes
+  output$camheatmap <- renderD3heatmap({
+    input$hmpcol #user input-color palette
+    input$clusterby #user input-cluster by
+    input$checkbox #user input-reverse colors
+    input$gene #user input-slider input for number of genes
+    input$genelist
+    input$makeheat
+    input$gage
+    input$go_dd
+    input$ga
+    input$table4_rows_selected
+    input$tablecam_rows_selected
+    input$radio
+    input$projects
+    input$contrast
+    input$cameradd
+    input$hmpsamp2
+    input$hmplimcam
+    input$lfc
+    input$apval
+    input$sortby
+    #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
+    #isolate({
+      camheatmap()
+    #})
+  })
+  
+  # make heatmap for genes
+  output$goheatmap <- renderD3heatmap({
+    input$hmpcol #user input-color palette
+    input$clusterby #user input-cluster by
+    input$checkbox #user input-reverse colors
+    input$gene #user input-slider input for number of genes
+    input$genelist
+    input$makeheat
+    input$gage
+    input$go_dd
+    input$ga
+    input$table4_rows_selected
+    input$tablecam_rows_selected
+    input$radio
+    input$projects
+    input$contrast
+    input$cameradd
+    input$hmpsamp3
+    input$hmplimgo
+    input$lfc
+    input$apval
+    input$sortby
+    #if user selected enter n num of genes, call heatmap() and if user entered genelist, call heatmap2()
+    #isolate({
+      goheatmapup()
+    #})
+  })
+  
+  
   # update tab4 with heatmap
   observe({
     if(input$makeheat > 0)
