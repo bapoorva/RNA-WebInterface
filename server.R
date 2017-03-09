@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyBS)
 #library(pathview)
 # library("AnnotationDbi")
 # library("org.Mm.eg.db")
@@ -32,6 +33,7 @@ library(limma)
 library(ggrepel)
 library(readxl)
 library(biomaRt)
+
 #load entrez id's for kegg pathway
 data(kegg.sets.mm)
 #load indexes for signaling and metabolic pathways
@@ -179,13 +181,8 @@ shinyServer(function(input, output,session) {
       DT::datatable(datasetInput(),
                     extensions = 'Buttons', options = list(
                       dom = 'Bfrtip',
-                      buttons = 
-                        list('copy', list(
-                          extend = 'collection',
-                          buttons = c('csv', 'excel', 'pdf','print'),
-                          text = 'Download'
-                        ))
-                    ),rownames=FALSE,selection = list(mode = 'single', selected =1),escape=FALSE)
+                      buttons = list('copy')),
+                    rownames=FALSE,selection = list(mode = 'single', selected =1),escape=FALSE)
     })
 
   # display data on tab 1
@@ -995,12 +992,42 @@ shinyServer(function(input, output,session) {
           dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
           expr <- heatmapcam() #voom expression data of all genes corresponding to selected row in camera datatable
           pval=campick2() #gene list from camera
-          expr$ENSEMBL=rownames(expr)
-          #           pval<-expr[rownames(voom) %in% rownames(genesid),]
-          expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-          #rownames(expr)=expr$SYMBOL
-          rownames(expr)=make.names(expr$SYMBOL,unique=T)
-          expr=expr %>% select(-ENSEMBL:-t)
+#           expr$ENSEMBL=rownames(expr)
+#           #           pval<-expr[rownames(voom) %in% rownames(genesid),]
+#           expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+#           #rownames(expr)=expr$SYMBOL
+#           rownames(expr)=make.names(expr$SYMBOL,unique=T)
+#           expr=expr %>% select(-ENSEMBL:-t)
+
+          file = readexcel()
+          prj=input$projects
+          old=file$old[file$projects %in% prj]
+          old=as.character(old)
+          seq=file$seq[file$projects %in% prj]
+          seq=as.character(seq)
+          if(seq=="R"){
+            expr$ENSEMBL=rownames(expr)
+            expr=inner_join(expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+            rownames(expr)=make.names(expr$SYMBOL,unique=T)
+            if(old=="N"){
+              expr=expr %>% select(-ENSEMBL:-t)}
+            else if(old=="Y"){
+              expr=expr %>% select(-ENSEMBL:-adj.P.Val)
+            }
+          }
+          else if(seq=="M"){
+            expr$id=rownames(expr)
+            pval$id=rownames(pval)
+            expr=inner_join(expr,pval,by=c('id'='id'))
+            rownames(expr)=make.names(expr$SYMBOL,unique=T)
+            if(old=="N"){
+              expr=expr %>% select(-ENSEMBL:-t)
+            }
+            else if(old=="Y"){
+              expr=expr %>% select(-ENSEMBL:-adj.P.Val)
+            }
+          }
+
           hmplim=input$hmplim
           #top_expr=data.frame(expr[,-1])
           #           if(hmplim==0)
@@ -1434,16 +1461,49 @@ shinyServer(function(input, output,session) {
     dist2 <- function(x, ...) {as.dist(1-cor(t(x), method="pearson"))}
     hmpcol=input$hmpcol
     pval=GOHeatup() #genelist from GO
-    #sym=pval$SYMBOL
     hmplim=input$hmplim
-    top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
-    top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+    top_expr=datasetInput3() 
+    top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]#voom expression data of all genes corresponding to selected row in GO datatable
     top_expr=as.data.frame(top_expr)
-    top_expr$ENSEMBL=rownames(top_expr)
-    top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
-    rownames(top_expr)=top_expr$SYMBOL
-    rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
-    top_expr=top_expr %>% select(-ENSEMBL:-link)
+    #sym=pval$SYMBOL
+#     hmplim=input$hmplim
+#     top_expr=datasetInput3() #voom expression data of all genes corresponding to selected row in GO datatable
+#     top_expr=top_expr[rownames(top_expr) %in% rownames(pval),]
+#     top_expr=as.data.frame(top_expr)
+#     top_expr$ENSEMBL=rownames(top_expr)
+#     top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+#     rownames(top_expr)=top_expr$SYMBOL
+#     rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
+#     top_expr=top_expr %>% select(-ENSEMBL:-link)
+    file = readexcel()
+    prj=input$projects
+    old=file$old[file$projects %in% prj]
+    old=as.character(old)
+    seq=file$seq[file$projects %in% prj]
+    seq=as.character(seq)
+    if(seq=="R"){
+      top_expr$ENSEMBL=rownames(top_expr)
+      top_expr=inner_join(top_expr,pval,by=c('ENSEMBL'='ENSEMBL'))
+      #rownames(top_expr)=top_expr$SYMBOL
+      rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
+      if(old=="N"){
+        top_expr=top_expr %>% select(-ENSEMBL:-t)}
+      else if(old=="Y"){
+        top_expr=top_expr %>% select(-ENSEMBL:-adj.P.Val)
+      }
+    }
+    else if(seq=="M"){
+      top_expr$id=rownames(top_expr)
+      pval$id=rownames(pval)
+      top_expr=inner_join(top_expr,pval,by=c('id'='id'))
+      rownames(top_expr)=make.names(top_expr$SYMBOL,unique=T)
+      if(old=="N"){
+        top_expr=top_expr %>% select(-ENSEMBL:-t)
+      }
+      else if(old=="Y"){
+        top_expr=top_expr %>% select(-ENSEMBL:-adj.P.Val)
+      }
+    }
     top_expr=top_expr[1:hmplim,]
     sym=rownames(top_expr)
     validate(
@@ -1922,7 +1982,7 @@ shinyServer(function(input, output,session) {
   })
 
 
-  #Download heatmap 
+  #Download heatmaps 
   output$downloadheatmap <- downloadHandler(
     filename = function(){
     paste0('heatmap','.jpg',sep='')
@@ -1932,9 +1992,35 @@ shinyServer(function(input, output,session) {
       jpeg(file, quality = 100, width = 800, height = 1300)
       if(input$hmip == 'genenum'){heatmapalt()}
       else if(input$hmip == 'geneli'){heatmap2alt()}
-      else if(input$hmip == 'hmpcam' ){camheatmapalt()}
-      else if(input$hmip == 'hmpgo'){goheatmapupalt()}
+#       else if(input$hmip == 'hmpcam' ){camheatmapalt()}
+#       else if(input$hmip == 'hmpgo'){goheatmapupalt()}
       dev.off()
     })
+  
+  #Download heatmaps 
+  output$downloadcamheatmap <- downloadHandler(
+    filename = function(){
+      paste0('camera_heatmap','.jpg',sep='')
+    },
+    content = function(file){
+      png(file)
+      jpeg(file, quality = 100, width = 800, height = 1300)
+      camheatmapalt()
+      dev.off()
+    })
+  
+  #Download heatmaps 
+  output$downloadgoheatmap <- downloadHandler(
+    filename = function(){
+      paste0('GO_heatmap','.jpg',sep='')
+    },
+    content = function(file){
+      png(file)
+      jpeg(file, quality = 100, width = 800, height = 1300)
+      goheatmapupalt()
+      dev.off()
+    })
+  
+  
 
 })

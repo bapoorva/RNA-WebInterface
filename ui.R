@@ -1,6 +1,7 @@
 library(shinydashboard)
 #library(shinyIncubator)
 library(shiny)
+library(shinyBS)
 library(plotly)
 library(d3heatmap)
 library(shinyjs)
@@ -95,10 +96,12 @@ dashboardPage(
                    h4('GSEA using Camera'),
                    fluidRow(
                      column(6,actionButton(inputId = 'camera', label = 'Click to view Camera results')),
+                     bsPopover("camera",title="Note",content= "If you get an error with the heatmap, try refreshing",placement="right",trigger="hover",options=list(container="body")),
                      column(6,uiOutput("cameradd")),
                      column(6,downloadButton('downloadcam', 'Download Camera Data')),
                      column(6,checkboxInput("eplot", label = "Show Enrichment Plot", value = FALSE))
                    ),
+                    downloadButton('downloadcamheatmap', 'Download Camera Heatmap'),
                    hr(),
                    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    h4('Pathway Analysis using SPIA'),
@@ -115,10 +118,13 @@ dashboardPage(
                                            selected = 1)),
                      column(6,selectInput("go_dd", "GO Selection",c('Upregulated' = "upreg",'Downregulated' = "downreg")))),
                       actionButton(inputId = 'ga', label = 'Display Results'),
+                    bsPopover("ga",title="Note",content= "If you get an error with the heatmap,try refreshing",placement="right",trigger="hover",options=list(container="body")),
                       br(),br(),
                      fluidRow( 
                      column(6,downloadButton('downloadgo', 'Download GO Data')),
                      column(6,downloadButton('downloadgogene', 'Download GO Genelist'))),
+                      br(),
+                      downloadButton('downloadgoheatmap', 'Download GO Heatmap'),
                    br()
   ),
 
@@ -156,7 +162,6 @@ dashboardPage(
                            column(6,plotOutput('dotplot',width = "auto"))
                          ),
                          br(),h4("~~~~Limma data~~~~"),
-                         h5(p(div(span("Note:Please use the download button in the side panel",style="color:red")))),
                          h5(p(div(span("Note:fc - Fold Change",style="color:red")))),
                          br(),textOutput("contrdesc"),br(),DT::dataTableOutput('table')),
                 tabPanel(title = "Volcano Plot", value = 'tabvolcano',
